@@ -145,7 +145,116 @@
     };
   }
 
-  const api = { pap };
+  const BBG_KV_MONTH = 581250;
+  const BBG_RV_MONTH = 845000;
+  const JAEG_MONTH = 645000;
+  const MIDIJOB_MAX = 200000;
+  const PKV_SUBSIDY_MAX = 50859 + 10463; // KV + PV, 2026
+  const BONUS_MONTH = 11; // November
+
+  const STATES = [
+    ['BW', 'Baden-Württemberg'], ['BY', 'Bavaria'], ['BE', 'Berlin'], ['BB', 'Brandenburg'],
+    ['HB', 'Bremen'], ['HH', 'Hamburg'], ['HE', 'Hesse'], ['MV', 'Mecklenburg-Western Pomerania'],
+    ['NI', 'Lower Saxony'], ['NW', 'North Rhine-Westphalia'], ['RP', 'Rhineland-Palatinate'],
+    ['SL', 'Saarland'], ['SN', 'Saxony'], ['ST', 'Saxony-Anhalt'], ['SH', 'Schleswig-Holstein'],
+    ['TH', 'Thuringia'],
+  ];
+
+  const DEFAULTS = {
+    taxClass: 1, state: 'BE', church: false, age: 30, children: 0,
+    insurance: 'public', zusatzbeitrag: 2.9, privatePremium: 60000, thirteenth: true,
+  };
+
+  const roundRate = (cents, rate) => div(cents * rate + RATE / 2, RATE);
+
+  function careRate(s) {
+    const childless = s.children === 0 && s.age >= 23;
+    const discount = Math.max(0, Math.min(s.children, 5) - 1) * 250;
+    return (s.state === 'SN' ? 2300 : 1800) + (childless ? 600 : -discount);
+  }
+
+  function pkvSubsidy(s) {
+    return Math.min(div(s.privatePremium, 2), PKV_SUBSIDY_MAX);
+  }
+
+  function papInput(s, gross) {
+    const childless = s.children === 0 && s.age >= 23;
+    const pkv = s.insurance === 'private';
+    const perChild = s.taxClass <= 2 ? 0.5 : s.taxClass <= 4 ? 1 : 0;
+    return {
+      STKL: s.taxClass,
+      RE4: gross,
+      ZKF: s.children * perChild,
+      KVZ: s.zusatzbeitrag,
+      PVZ: childless ? 1 : 0,
+      PVS: s.state === 'SN' ? 1 : 0,
+      PVA: childless ? 0 : Math.max(0, Math.min(s.children, 5) - 1),
+      PKV: pkv ? 1 : 0,
+      PKPV: pkv ? s.privatePremium : 0,
+      PKPVAGZ: pkv ? pkvSubsidy(s) : 0,
+      R: s.church ? 1 : 0,
+      JRE4: gross * 12,
+      SONSTB: s.thirteenth ? gross : 0,
+    };
+  }
+
+  // Employee contributions on a contributory base; kvBase/rvBase already capped.
+  function contributions(s, kvBase, rvBase, privateShare) {
+    const pkv = s.insurance === 'private';
+    const kvRate = 7300 + Math.round(s.zusatzbeitrag * 100) * 5;
+    return {
+      health: pkv ? privateShare : roundRate(kvBase, kvRate),
+      care: pkv ? 0 : roundRate(kvBase, careRate(s)),
+      pension: roundRate(rvBase, RVSATZAN),
+      unemployment: roundRate(rvBase, AVSATZAN),
+    };
+  }
+
+  function breakdown(gross, incomeTax, soli, church, sv) {
+    const net = gross - incomeTax - soli - church - sv.health - sv.care - sv.pension - sv.unemployment;
+    return { gross, incomeTax, soli, church, ...sv, net };
+  }
+
+  // §23a SGB IV: one-off payment fills the room under the pro-rata annual cap up to its month.
+  function bonusBase(gross, bonus, monthCap) {
+    const room = BONUS_MONTH * monthCap - BONUS_MONTH * Math.min(gross, monthCap);
+    return Math.min(bonus, Math.max(0, room));
+  }
+
+  function calculate(s, gross) {
+    const r = pap(papInput(s, gross));
+    const churchRate = s.state === 'BW' || s.state === 'BY' ? 8 : 9;
+    const privateShare = s.insurance === 'private' ? s.privatePremium - pkvSubsidy(s) : 0;
+
+    const regular = breakdown(gross, r.LSTLZZ, r.SOLZLZZ, div(r.BK * churchRate, 100),
+      contributions(s, Math.min(gross, BBG_KV_MONTH), Math.min(gross, BBG_RV_MONTH), privateShare));
+
+    const b = s.thirteenth ? gross : 0;
+    const bonus = breakdown(b, r.STS, r.SOLZS, div(r.BKS * churchRate, 100),
+      contributions(s, bonusBase(gross, b, BBG_KV_MONTH), bonusBase(gross, b, BBG_RV_MONTH), 0));
+
+    const year = {};
+    for (const k of Object.keys(regular)) year[k] = regular[k] * 12 + bonus[k];
+
+    const notes = [];
+    if (gross > 0 && gross <= MIDIJOB_MAX) {
+      notes.push('Below 2,000 € a month special mini- and midijob rules apply, so these results are only approximate.');
+    }
+    if (s.insurance === 'private' && gross < JAEG_MONTH) {
+      notes.push('Private health insurance is normally only possible above 6,450 € a month (77,400 € a year).');
+    }
+
+    return {
+      regular,
+      bonus,
+      november: { gross: regular.gross + bonus.gross, net: regular.net + bonus.net },
+      average: { gross: Math.round(year.gross / 12), net: Math.round(year.net / 12) },
+      year,
+      notes,
+    };
+  }
+
+  const api = { pap, calculate, DEFAULTS, STATES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SalaryTax = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

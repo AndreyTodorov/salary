@@ -66,3 +66,68 @@ test('no bonus means no bonus tax', () => {
   const r = pap({ STKL: 1, RE4: 500000, JRE4: 6000000, SONSTB: 0 });
   assert.deepEqual([r.STS, r.SOLZS, r.BKS], [0, 0, 0]);
 });
+
+const S = (o) => ({ ...T.DEFAULTS, ...o });
+
+test('net at 5000, class I, childless, average Zusatzbeitrag', () => {
+  const r = T.calculate(S({ thirteenth: false }), 500000);
+  assert.equal(r.regular.incomeTax, 78241);
+  assert.equal(r.regular.health + r.regular.care + r.regular.pension + r.regular.unemployment, 108750);
+  assert.equal(r.regular.net, 313009);
+});
+test('net at 3000 and 8000', () => {
+  assert.equal(T.calculate(S(), 300000).regular.net, 205442);
+  const r = T.calculate(S(), 800000).regular;
+  assert.deepEqual([r.health, r.care, r.pension, r.unemployment], [50859, 13950, 74400, 10400]);
+  assert.equal(r.net, 467996);
+});
+test('13th salary at 8000: no KV/PV, RV/ALV on 4950 only', () => {
+  const b = T.calculate(S(), 800000).bonus;
+  assert.deepEqual([b.health, b.care], [0, 0]);
+  assert.equal(b.pension, 46035);   // 4950 * 9.3 %
+  assert.equal(b.unemployment, 6435);
+  assert.equal(b.incomeTax, 314900);
+  assert.equal(b.soli, 17319);
+});
+test('year and average include the 13th salary', () => {
+  const r = T.calculate(S(), 500000);
+  assert.equal(r.year.gross, 6500000);
+  assert.equal(r.year.net, r.regular.net * 12 + r.bonus.net);
+  assert.equal(r.average.gross, 541667);
+  assert.equal(r.november.net, r.regular.net + r.bonus.net);
+});
+test('13th off: bonus is zero and average equals regular', () => {
+  const r = T.calculate(S({ thirteenth: false }), 500000);
+  assert.equal(r.bonus.gross, 0);
+  assert.equal(r.average.net, r.regular.net);
+});
+test('church tax 9 % in Berlin, 8 % in Bavaria', () => {
+  const be = T.calculate(S({ church: true, thirteenth: false }), 500000).regular;
+  const by = T.calculate(S({ church: true, state: 'BY', thirteenth: false }), 500000).regular;
+  assert.equal(be.church, 7041); // 782.41 * 9 %
+  assert.equal(by.church, 6259);
+});
+test('care insurance: Saxony, children discount, under 23', () => {
+  const care = (o) => T.calculate(S(o), 500000).regular.care;
+  assert.equal(care({}), 12000);                           // 2.4 %
+  assert.equal(care({ state: 'SN' }), 14500);              // 2.9 %
+  assert.equal(care({ children: 3 }), 6500);               // 1.8 - 0.5 = 1.3 %
+  assert.equal(care({ age: 22 }), 9000);                   // 1.8 %
+});
+test('private insurance: employee pays premium minus subsidy', () => {
+  const r = T.calculate(S({ insurance: 'private', privatePremium: 80000 }), 800000).regular;
+  assert.equal(r.health, 40000);
+  assert.equal(r.care, 0);
+  const cap = T.calculate(S({ insurance: 'private', privatePremium: 150000 }), 800000).regular;
+  assert.equal(cap.health, 150000 - 61322);
+});
+test('notes for midijob range and private below JAEG', () => {
+  assert.ok(T.calculate(S(), 150000).notes.length > 0);
+  assert.ok(T.calculate(S({ insurance: 'private' }), 500000).notes.length > 0);
+  assert.equal(T.calculate(S(), 500000).notes.length, 0);
+});
+test('gross 0 is finite', () => {
+  const r = T.calculate(S(), 0);
+  assert.equal(r.year.net, 0);
+  assert.ok(Object.values(r.regular).every(Number.isFinite));
+});
