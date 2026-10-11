@@ -108,3 +108,57 @@ Subject: a payslip, re-imagined as an instrument for finding a number. Audience:
 - **Memorable element:** the year strip — 12 bars, November visibly taller in amber. It's the one bold moment; the rest stays quiet.
 - **Layout:** mobile-first single column (grid → year strip → settings → breakdown). From ~900px: settings in a sticky left column, results on the right. Left-aligned.
 - **Interaction:** the edited cell keeps focus; other cells update live with a brief highlight of what changed. Respects reduced motion, visible keyboard focus, German number input accepted (`5.000,50` and `5000.50`).
+
+---
+
+## Revision 2 (2026-10-11): improvements, curve, benefit card, German UI
+
+Approved after the independent review. Supersedes the sections above where they conflict.
+
+### Calculation
+
+- **Year constants** live in one `Y` block in `tax.js` (plus the tariff coefficients right below it). UI copy that names the year or limits takes them from `SalaryTax.Y`.
+- **Notes** are codes with parameters (`{ code, limit }`), translated in the UI:
+  - `jaeg`: private insurance and yearly gross (13 × gross with the 13th, else 12 ×) below JAEG 77,400 €.
+  - `midijob`: average monthly gross (yearly ÷ 12) at or below 2,000 €.
+  - `benefitTaxable`: benefit card above 50 €.
+- **Benefit card (Sachbezug, §8 Abs. 2 Satz 11 EStG):** setting `benefitCard` (cents per month, 0–1,000 €, default 0).
+  - Up to 50 €: tax- and contribution-free.
+  - Above 50 € (Freigrenze): the whole amount is added to taxable and contributory monthly pay (RE4, JRE4, SV base, §23a room). It is not added to the 13th salary.
+  - Breakdown gains `benefit`; `net` stays cash paid out. The UI shows "net incl. benefit card" = net + benefit.
+- **Targets mean "at least":** `solve` returns the lowest monthly gross whose value reaches the target. After bisection it scans 80 € of monthly gross below the result, to cross the Soli cliff on the 13th salary.
+- **Amount parsing:**
+  - `65,000` / `1,234,567` are thousands.
+  - A decimal part has at most 2 digits (`5000.123` → invalid).
+  - Thousands groups must be valid.
+- **Tax class 2 requires at least one child:** `normalize()` maps class 2 with 0 children to class 1. The UI disables class 2 while children = 0.
+- **Restore** also validates `benefitCard` and `lang` (`en` | `de`).
+
+### UI
+
+- **Gross → net curve** replaces the year bars.
+  - Monthly net (solid green) and average-month net (dashed amber, only with the 13th) over gross from 0 to max(8,000 €, 2 × gross).
+  - Faint vertical lines at the KV/PV cap (5,812.50 €) and the RV/ALV cap (8,450 €).
+  - A marker shows the current salary.
+  - Hover or tap shows gross, net and "keeps X ct per extra €". Click sets the monthly gross (rounded to 10 €).
+  - Caption: marginal keep at the current salary and the net effect of +500 € gross.
+- **Benefit card** setting, a line under the grid, and breakdown rows "Benefit card" and "Net incl. benefit card" (shown when > 0).
+- **English / German toggle** in the header.
+  - Defaults to the browser language; remembered.
+  - All copy translated, formal "Sie" in German.
+  - Numbers stay `de-DE` in both languages.
+- **Assumptions** (collapsible) under the breakdown, also printed:
+  - withheld tax vs. annual assessment
+  - 13th = one monthly gross, in November
+  - children under 25; ZKF 0.5 in classes I/II, 1.0 in III/IV
+  - PKV premium treated as basic cover; subsidy cap
+  - out-of-scope cases
+- **Pinned copy:** "Pinned: monthly net. Changing settings keeps this number and recalculates the rest." with a swatch of the pinned underline. If the 13th is switched off while an average-month cell is pinned, the pin moves to the matching monthly figure.
+- **Accessibility:**
+  - Editable-cell underline and switch track at ≥ 3:1 contrast.
+  - A polite live region announces monthly and yearly gross/net after typing pauses.
+  - Escape reverts the cell being edited.
+- **Font self-hosted:** `fonts/archivo-latin.woff2` plus `fonts/OFL.txt`. No third-party requests.
+- **Print stylesheet:** figures, a one-line settings summary, curve, breakdown, notes, assumptions. Controls hidden.
+- Open Graph title/description, `<noscript>` message, breakdown table scrolls inside its box on narrow screens, no change-flash on first render.
+- Repo: `.gitignore`, `README.md`.
