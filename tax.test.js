@@ -180,7 +180,7 @@ test('restore ignores invalid saved state', () => {
   const good = T.restore({ settings: { taxClass: 3, state: 'SN', church: true }, anchor: { field: 'yearNet', cents: 5000000 } });
   assert.deepEqual(good.settings, { ...T.DEFAULTS, taxClass: 3, state: 'SN', church: true });
   assert.deepEqual(good.anchor, { field: 'yearNet', cents: 5000000 });
-  assert.deepEqual(T.restore(null), { settings: T.DEFAULTS, anchor: null });
+  assert.deepEqual(T.restore(null), { settings: T.DEFAULTS, anchor: null, lang: null });
 });
 
 test('class V/VI tariff branches above W1, W2 and W3', () => {
@@ -261,4 +261,26 @@ test('parseAmount reads English thousands and rejects bad grouping', () => {
   assert.equal(T.parseAmount('5000.123'), null);
   assert.equal(T.parseAmount('50.00.0'), null);
   assert.equal(T.parseAmount('1,2,3'), null);
+});
+test('class 2 needs a child', () => {
+  assert.equal(T.normalize(S({ taxClass: 2, children: 0 })).taxClass, 1);
+  assert.equal(T.normalize(S({ taxClass: 2, children: 1 })).taxClass, 2);
+});
+test('restore validates benefit card and language', () => {
+  const r = T.restore({ settings: { benefitCard: 5000, taxClass: 2, children: 0 }, lang: 'de' });
+  assert.equal(r.settings.benefitCard, 5000);
+  assert.equal(r.settings.taxClass, 1);
+  assert.equal(r.lang, 'de');
+  const bad = T.restore({ settings: { benefitCard: -1 }, lang: 'fr' });
+  assert.equal(bad.settings.benefitCard, 0);
+  assert.equal(bad.lang, null);
+});
+test('restore keeps old saved state', () => {
+  const r = T.restore({ settings: { taxClass: 3, state: 'BY', church: true, age: 41 }, anchor: { field: 'monthlyNet', cents: 400000 } });
+  assert.deepEqual(r.settings, { ...T.DEFAULTS, taxClass: 3, state: 'BY', church: true, age: 41 });
+  assert.deepEqual(r.anchor, { field: 'monthlyNet', cents: 400000 });
+});
+test('states carry German names', () => {
+  assert.deepEqual(T.STATES.find(([c]) => c === 'BY'), ['BY', 'Bavaria', 'Bayern']);
+  assert.ok(T.STATES.every((s) => s.length === 3));
 });

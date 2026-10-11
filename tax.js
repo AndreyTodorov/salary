@@ -161,12 +161,19 @@
   const BONUS_MONTH = 11; // November
 
   const STATES = [
-    ['BW', 'Baden-Württemberg'], ['BY', 'Bavaria'], ['BE', 'Berlin'], ['BB', 'Brandenburg'],
-    ['HB', 'Bremen'], ['HH', 'Hamburg'], ['HE', 'Hesse'], ['MV', 'Mecklenburg-Western Pomerania'],
-    ['NI', 'Lower Saxony'], ['NW', 'North Rhine-Westphalia'], ['RP', 'Rhineland-Palatinate'],
-    ['SL', 'Saarland'], ['SN', 'Saxony'], ['ST', 'Saxony-Anhalt'], ['SH', 'Schleswig-Holstein'],
-    ['TH', 'Thuringia'],
+    ['BW', 'Baden-Württemberg', 'Baden-Württemberg'], ['BY', 'Bavaria', 'Bayern'], ['BE', 'Berlin', 'Berlin'],
+    ['BB', 'Brandenburg', 'Brandenburg'], ['HB', 'Bremen', 'Bremen'], ['HH', 'Hamburg', 'Hamburg'],
+    ['HE', 'Hesse', 'Hessen'], ['MV', 'Mecklenburg-Western Pomerania', 'Mecklenburg-Vorpommern'],
+    ['NI', 'Lower Saxony', 'Niedersachsen'], ['NW', 'North Rhine-Westphalia', 'Nordrhein-Westfalen'],
+    ['RP', 'Rhineland-Palatinate', 'Rheinland-Pfalz'], ['SL', 'Saarland', 'Saarland'], ['SN', 'Saxony', 'Sachsen'],
+    ['ST', 'Saxony-Anhalt', 'Sachsen-Anhalt'], ['SH', 'Schleswig-Holstein', 'Schleswig-Holstein'],
+    ['TH', 'Thuringia', 'Thüringen'],
   ];
+
+  // Tax class 2 (single parent) needs at least one child.
+  function normalize(s) {
+    return s.taxClass === 2 && s.children === 0 ? { ...s, taxClass: 1 } : s;
+  }
 
   const DEFAULTS = {
     taxClass: 1, state: 'BE', church: false, age: 30, children: 0,
@@ -323,16 +330,18 @@
       zusatzbeitrag: (v) => Number.isFinite(v) && v >= 0 && v <= 10,
       privatePremium: (v) => Number.isInteger(v) && v >= 0 && v <= 1000000,
       thirteenth: (v) => typeof v === 'boolean',
+      benefitCard: (v) => Number.isInteger(v) && v >= 0 && v <= 100000,
     };
     const settings = { ...DEFAULTS };
     for (const k of Object.keys(ok)) if (ok[k](src[k])) settings[k] = src[k];
     const a = saved && saved.anchor;
     const anchor = a && FIELDS.includes(a.field) && Number.isInteger(a.cents) && a.cents >= 0
       ? { field: a.field, cents: a.cents } : null;
-    return { settings, anchor };
+    const lang = saved && (saved.lang === 'en' || saved.lang === 'de') ? saved.lang : null;
+    return { settings: normalize(settings), anchor, lang };
   }
 
-  const api = { Y, pap, calculate, solve, read, parseAmount, pkvSubsidy, restore, DEFAULTS, STATES, FIELDS, MAX_GROSS };
+  const api = { Y, pap, calculate, solve, read, parseAmount, pkvSubsidy, restore, normalize, DEFAULTS, STATES, FIELDS, MAX_GROSS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SalaryTax = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
