@@ -4,21 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>German Gross-to-Net Calculator 2026</title>
-<meta name="description" content="Gross-to-net salary calculator for Germany, tax year 2026, including a 13th monthly salary. Based on the official BMF payroll tax algorithm.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='7' width='3' height='8' fill='%230E7A5C'/%3E%3Crect x='6.5' y='7' width='3' height='8' fill='%230E7A5C'/%3E%3Crect x='12' y='1' width='3' height='14' fill='%23E0A12B'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap" rel="stylesheet">
+<meta name="description" content="Gross-to-net salary calculator for Germany, tax year 2026, including a 13th monthly salary and benefit cards. Based on the official BMF payroll tax algorithm.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="German Gross-to-Net Calculator 2026">
+<meta property="og:description" content="Net pay, taxes and social contributions for employees in Germany, including a 13th monthly salary. Based on the official BMF payroll tax algorithm.">
+<meta name="theme-color" content="#F2F4F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111917" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 15 L6 10 L10 8 L15 2' fill='none' stroke='%230E7A5C' stroke-width='2.5'/%3E%3Ccircle cx='10' cy='8' r='2.5' fill='%23E0A12B'/%3E%3C/svg%3E">
 <style>
+  @font-face {
+    font-family: "Archivo";
+    src: url("fonts/archivo-latin.woff2") format("woff2");
+    font-weight: 300 800; font-stretch: 62% 125%; font-style: normal; font-display: swap;
+  }
   :root {
-    --paper: #F2F4F1; --surface: #FBFCFA; --ink: #1C2A28; --muted: #5A6865; --line: #D3DBD6;
+    --paper: #F2F4F1; --surface: #FBFCFA; --ink: #1C2A28; --muted: #5A6865; --line: #D3DBD6; --edit: #7F8B87;
     --net: #0E7A5C; --tax: #7D4A73; --social: #4C6A8C; --bonus: #E0A12B; --bonus-ink: #8A5A00;
     --flash: rgba(14, 122, 92, .14);
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper: #111917; --surface: #18221F; --ink: #E3EAE6; --muted: #93A29D; --line: #2B3834;
+      --paper: #111917; --surface: #18221F; --ink: #E3EAE6; --muted: #93A29D; --line: #2B3834; --edit: #6E7B77;
       --net: #43C497; --tax: #C990BD; --social: #8FAAD0; --bonus: #F0B94A; --bonus-ink: #F0B94A;
       --flash: rgba(67, 196, 151, .18);
       color-scheme: dark;
@@ -31,21 +38,27 @@
     font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased;
   }
   .page { max-width: 72rem; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .print-only { display: none; }
+  .noscript { margin: 1rem; padding: 1rem; border-left: 3px solid var(--tax); }
+
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+  .top > div:first-child { min-width: 0; }
   h1 {
     margin: 0 0 .75rem; max-width: 18ch;
-    font-size: clamp(2.25rem, 7vw, 3.75rem); line-height: 1; font-weight: 780; font-stretch: 68%;
+    font-size: clamp(2.1rem, 7vw, 3.75rem); line-height: 1; font-weight: 780; font-stretch: 68%;
   }
   .lede { margin: 0; max-width: 58ch; color: var(--muted); }
   h2 { font-size: 1.125rem; font-weight: 650; margin: 0 0 .75rem; }
 
   .layout {
     display: grid; gap: 2.5rem; margin-top: 2.5rem;
-    grid-template-areas: "figures" "strip" "settings" "breakdown";
+    grid-template-areas: "figures" "chart" "settings" "breakdown";
   }
   @media (min-width: 900px) {
     .layout {
       grid-template-columns: 18.5rem minmax(0, 1fr); column-gap: 3.5rem;
-      grid-template-areas: "settings figures" "settings strip" "settings breakdown";
+      grid-template-areas: "settings figures" "settings chart" "settings breakdown";
     }
     .settings { position: sticky; top: 1.5rem; align-self: start; }
   }
@@ -54,45 +67,53 @@
   .figures { grid-area: figures; }
   .figures table { width: 100%; border-collapse: collapse; }
   .figures th { font-weight: 500; color: var(--muted); text-align: right; padding: 0 0 .25rem; font-size: .9375rem; }
-  .figures th[scope="row"] { text-align: left; padding: .9rem .75rem .9rem 0; color: var(--ink); width: 34%; }
+  .figures th[scope="row"] { text-align: left; padding: .9rem .75rem .9rem 0; color: var(--ink); width: 34%; hyphens: auto; overflow-wrap: anywhere; }
   .figures th[scope="row"] small { display: block; color: var(--muted); font-size: .8125rem; font-weight: 400; }
   .figures td { padding: .35rem 0 .35rem .75rem; border-top: 1px solid var(--line); }
-  .figures tr:first-child td, .figures tr:first-child th { border-top: 0; }
+  .figures thead td { border-top: 0; }
   .figures tbody th[scope="row"] { border-top: 1px solid var(--line); }
-  .figures tbody tr:first-child th[scope="row"] { border-top: 0; }
+  .figures tbody tr:first-child td, .figures tbody tr:first-child th[scope="row"] { border-top: 0; }
   .cell {
-    display: block; width: 100%; min-width: 0; padding: .2rem .1rem; margin: 0;
-    font: inherit; font-size: clamp(1.35rem, 5.2vw, 2.25rem); font-weight: 640; font-stretch: 70%;
+    display: block; width: 100%; min-width: 0; padding: .2rem .25rem; margin: 0;
+    font: inherit; font-size: clamp(1.3rem, 5.2vw, 2.25rem); font-weight: 640; font-stretch: 70%;
     text-align: right; color: var(--ink); background: transparent;
     border: 0; border-bottom: 2px solid transparent; border-radius: 0;
     transition: background-color .6s ease;
   }
-  input.cell { border-bottom-color: var(--line); cursor: text; }
-  input.cell:hover { border-bottom-color: var(--muted); }
+  input.cell { border-bottom-color: var(--edit); cursor: text; }
+  input.cell:hover { background: var(--surface); }
   input.cell:focus { outline: none; border-bottom-color: var(--net); background: var(--surface); }
   input.cell[aria-invalid="true"] { border-bottom-color: var(--tax); }
   .cell.net { color: var(--net); }
-  .cell.pinned { border-bottom-style: double; border-bottom-width: 4px; border-bottom-color: var(--net); }
+  .cell.pinned { border-bottom: 4px double var(--net); }
   .cell.flash { background-color: var(--flash); transition: none; }
-  .row-bonus .cell { color: var(--bonus-ink); }
-  .row-bonus th[scope="row"] { color: var(--bonus-ink); }
-  .hint { margin: .75rem 0 0; color: var(--muted); font-size: .875rem; }
+  .row-bonus .cell, .row-bonus th[scope="row"] { color: var(--bonus-ink); }
+  .hint, .benefit-line { margin: .75rem 0 0; color: var(--muted); font-size: .875rem; }
+  .pin-swatch { display: inline-block; width: 1.4rem; height: .5rem; border-bottom: 4px double var(--net); margin-right: .5rem; vertical-align: .1em; }
 
-  /* The year strip */
-  .strip { grid-area: strip; margin: 0; }
-  .bars {
-    display: grid; grid-template-columns: repeat(12, 1fr); gap: clamp(3px, 1vw, 8px);
-    align-items: end; height: clamp(8rem, 26vw, 12rem);
+  /* Gross → net curve */
+  .curve { grid-area: chart; margin: 0; position: relative; }
+  .legend { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; margin: 0 0 .5rem; font-size: .8125rem; color: var(--muted); }
+  .legend span::before { content: ""; display: inline-block; width: 1.4rem; border-top: 2.5px solid var(--net); vertical-align: middle; margin-right: .45rem; }
+  .legend .avg::before { border-top: 2px dashed var(--bonus); }
+  .curve svg { display: block; width: 100%; overflow: visible; cursor: crosshair; touch-action: pan-y; }
+  .curve svg text { font-family: inherit; font-size: 11px; fill: var(--muted); }
+  .curve .grid line { stroke: var(--line); }
+  .curve .cap line { stroke: var(--social); stroke-dasharray: 2 4; }
+  .curve .cap text { fill: var(--social); }
+  .curve .line-month { fill: none; stroke: var(--net); stroke-width: 2.5; stroke-linejoin: round; }
+  .curve .line-avg { fill: none; stroke: var(--bonus); stroke-width: 2; stroke-dasharray: 6 4; }
+  .curve .you line, .curve .hover line { stroke: var(--muted); stroke-dasharray: 3 3; }
+  .curve .you circle { fill: var(--net); stroke: var(--paper); stroke-width: 3; }
+  .curve .hover { display: none; }
+  .curve .hover.show { display: inline; }
+  .curve .hover circle { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+  .tip {
+    position: absolute; z-index: 2; pointer-events: none; white-space: pre; line-height: 1.4;
+    background: var(--ink); color: var(--paper); font-size: .8125rem; padding: .45rem .6rem; border-radius: 4px;
+    transform: translate(-50%, calc(-100% - 14px));
   }
-  .bar { display: flex; flex-direction: column-reverse; height: 100%; justify-content: flex-start; }
-  .bar span { display: block; transition: height .35s cubic-bezier(.2, .7, .2, 1); }
-  .bar .reg { background: var(--net); border-radius: 0 0 2px 2px; }
-  .bar .bon { background: var(--bonus); border-radius: 3px 3px 0 0; }
-  .months { display: grid; grid-template-columns: repeat(12, 1fr); gap: clamp(3px, 1vw, 8px); margin-top: .4rem; }
-  .months span { text-align: center; font-size: .75rem; color: var(--muted); }
-  .months .nov { color: var(--bonus-ink); font-weight: 650; }
-  .strip figcaption { margin-top: .75rem; color: var(--muted); font-size: .9375rem; max-width: 60ch; }
-  .strip figcaption strong { color: var(--ink); font-weight: 650; }
+  .curve figcaption { margin-top: .5rem; color: var(--muted); font-size: .9375rem; max-width: 62ch; }
 
   /* Settings */
   .settings { grid-area: settings; }
@@ -101,19 +122,23 @@
   .field .sub { color: var(--muted); font-size: .8125rem; margin: .35rem 0 0; }
   select, input.text {
     width: 100%; padding: .55rem .65rem; font: inherit; color: var(--ink);
-    background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+    background: var(--surface); border: 1px solid var(--edit); border-radius: 6px;
   }
-  input.text { font-variant-numeric: tabular-nums; }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-  .segmented { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+  .segmented { display: flex; border: 1px solid var(--edit); border-radius: 6px; overflow: hidden; background: var(--surface); }
   .segmented label { flex: 1; position: relative; text-align: center; cursor: pointer; }
   .segmented label + label { border-left: 1px solid var(--line); }
   .segmented input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
   .segmented span { display: block; padding: .5rem .25rem; font-weight: 600; font-size: .9375rem; }
   .segmented input:checked + span { background: var(--ink); color: var(--paper); }
   .segmented input:focus-visible + span { outline: 2px solid var(--net); outline-offset: -4px; }
+  .segmented label.disabled { cursor: not-allowed; }
+  .segmented label.disabled span { opacity: .35; }
+  .segmented input:disabled { cursor: not-allowed; }
+  .lang { flex: none; width: 6rem; margin-top: .4rem; }
+  .lang span { padding: .3rem .25rem; font-size: .8125rem; }
   .switch { display: flex; align-items: center; justify-content: space-between; gap: 1rem; cursor: pointer; font-weight: 600; font-size: .9375rem; }
-  .switch input { appearance: none; width: 2.75rem; height: 1.6rem; border-radius: 1rem; background: var(--line); position: relative; cursor: pointer; flex: none; margin: 0; transition: background .2s; }
+  .switch input { appearance: none; width: 2.75rem; height: 1.6rem; border-radius: 1rem; background: var(--edit); position: relative; cursor: pointer; flex: none; margin: 0; transition: background .2s; }
   .switch input::after { content: ""; position: absolute; top: .2rem; left: .2rem; width: 1.2rem; height: 1.2rem; border-radius: 50%; background: var(--surface); transition: transform .2s; }
   .switch input:checked { background: var(--net); }
   .switch input:checked::after { transform: translateX(1.15rem); }
@@ -122,7 +147,8 @@
   [hidden] { display: none !important; }
 
   /* Breakdown */
-  .breakdown { grid-area: breakdown; }
+  .breakdown { grid-area: breakdown; min-width: 0; }
+  .table-scroll { overflow-x: auto; }
   .breakdown table { width: 100%; border-collapse: collapse; font-size: .9375rem; }
   .breakdown th, .breakdown td { padding: .5rem 0 .5rem .75rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
   .breakdown th:first-child { text-align: left; padding-left: 0; white-space: normal; }
@@ -133,133 +159,174 @@
   .breakdown .tax th::before { background: var(--tax); }
   .breakdown .social th::before { background: var(--social); }
   .breakdown .gross th::before { background: transparent; border: 1px solid var(--muted); }
-  .breakdown .net th, .breakdown .net td { font-weight: 700; color: var(--net); border-bottom: 0; }
-  .breakdown .net th::before { background: var(--net); }
+  .breakdown .net th, .breakdown .net td, .breakdown .total th, .breakdown .total td { font-weight: 700; color: var(--net); }
+  .breakdown .net th::before, .breakdown .total th::before { background: var(--net); }
+  .breakdown .benefit th::before { background: transparent; border: 1px dashed var(--net); }
+  .breakdown .total th, .breakdown .total td { border-bottom: 0; }
   .notes { margin: 1rem 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .875rem; }
-  .notes li { padding-left: 1rem; border-left: 3px solid var(--bonus); margin-bottom: .5rem; }
+  .notes li { padding-left: 1rem; border-left: 3px solid var(--edit); margin-bottom: .5rem; }
+  .assumptions { margin-top: 1.5rem; font-size: .875rem; color: var(--muted); }
+  .assumptions summary { cursor: pointer; font-weight: 600; color: var(--ink); font-size: .9375rem; }
+  .assumptions ul { margin: .5rem 0 0; padding-left: 1.1rem; max-width: 70ch; }
+  .assumptions li { margin-bottom: .4rem; }
   footer { margin-top: 4rem; color: var(--muted); font-size: .8125rem; max-width: 70ch; }
 
   @media (max-width: 420px) {
+    .figures th[scope="row"] { padding-right: .4rem; font-size: .9375rem; }
+    .figures td { padding-left: .4rem; }
     .breakdown table { font-size: .8125rem; }
     .breakdown th, .breakdown td { padding-left: .4rem; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; }
   }
+  @media print {
+    :root { --paper: #fff; --surface: #fff; --ink: #000; --muted: #444; --line: #bbb; --edit: transparent; --flash: transparent; }
+    .page { padding: 0; max-width: none; }
+    .lang, .settings, .tip, .curve .hover, .curve figcaption, .noscript { display: none !important; }
+    .print-only { display: block; margin: 0 0 1rem; font-size: .875rem; }
+    .layout { display: block; margin-top: 1.5rem; }
+    .layout > * { margin-bottom: 1.5rem; break-inside: avoid; }
+    .cell { font-size: 1.4rem; }
+    .cell.pinned { border-bottom: 0; }
+    .hint, footer { display: none; }
+    @page { margin: 14mm; }
+  }
 </style>
 </head>
 <body>
+<noscript><p class="noscript">This calculator needs JavaScript. Dieser Rechner benötigt JavaScript.</p></noscript>
 <div class="page">
-  <header>
-    <h1>German gross-to-net calculator 2026</h1>
-    <p class="lede">Net pay, taxes and social contributions for employees in Germany, including a 13th monthly salary. Based on the official 2026 payroll tax algorithm (BMF). Edit any gross or net amount to recalculate the others.</p>
+  <header class="top">
+    <div>
+      <h1 data-i18n="title">German gross-to-net calculator 2026</h1>
+      <p class="lede" data-i18n="lede"></p>
+    </div>
+    <div class="segmented lang" role="radiogroup" aria-label="Language / Sprache">
+      <label><input type="radio" name="lang" value="en" lang="en" aria-label="English"><span>EN</span></label>
+      <label><input type="radio" name="lang" value="de" lang="de" aria-label="Deutsch"><span>DE</span></label>
+    </div>
   </header>
 
   <main class="layout">
     <section class="figures" aria-labelledby="figures-title">
-      <h2 id="figures-title" hidden>Your salary</h2>
+      <h2 id="figures-title" class="sr-only" data-i18n="figuresTitle"></h2>
+      <p class="print-only" id="printSummary"></p>
       <table>
-        <thead><tr><td></td><th scope="col">Gross</th><th scope="col">Net</th></tr></thead>
+        <thead><tr><td></td><th scope="col" data-i18n="gross"></th><th scope="col" data-i18n="net"></th></tr></thead>
         <tbody>
           <tr>
-            <th scope="row">Every month</th>
-            <td><input class="cell" data-field="monthlyGross" inputmode="decimal" autocomplete="off" aria-label="Every month, gross"></td>
-            <td><input class="cell net" data-field="monthlyNet" inputmode="decimal" autocomplete="off" aria-label="Every month, net"></td>
+            <th scope="row" data-i18n="rowMonth"></th>
+            <td><input class="cell" data-field="monthlyGross" inputmode="decimal" autocomplete="off"></td>
+            <td><input class="cell net" data-field="monthlyNet" inputmode="decimal" autocomplete="off"></td>
           </tr>
           <tr class="row-bonus" data-bonus>
-            <th scope="row">November<small>with 13th salary</small></th>
+            <th scope="row"><span data-i18n="rowNov"></span><small data-i18n="rowNovSub"></small></th>
             <td><output class="cell" id="novGross"></output></td>
             <td><output class="cell" id="novNet"></output></td>
           </tr>
           <tr data-bonus>
-            <th scope="row">Average month<small>year ÷ 12</small></th>
-            <td><input class="cell" data-field="averageGross" inputmode="decimal" autocomplete="off" aria-label="Average month, gross"></td>
-            <td><input class="cell net" data-field="averageNet" inputmode="decimal" autocomplete="off" aria-label="Average month, net"></td>
+            <th scope="row"><span data-i18n="rowAvg"></span><small data-i18n="rowAvgSub"></small></th>
+            <td><input class="cell" data-field="averageGross" inputmode="decimal" autocomplete="off"></td>
+            <td><input class="cell net" data-field="averageNet" inputmode="decimal" autocomplete="off"></td>
           </tr>
           <tr>
-            <th scope="row">Year</th>
-            <td><input class="cell" data-field="yearGross" inputmode="decimal" autocomplete="off" aria-label="Year, gross"></td>
-            <td><input class="cell net" data-field="yearNet" inputmode="decimal" autocomplete="off" aria-label="Year, net"></td>
+            <th scope="row" data-i18n="rowYear"></th>
+            <td><input class="cell" data-field="yearGross" inputmode="decimal" autocomplete="off"></td>
+            <td><input class="cell net" data-field="yearNet" inputmode="decimal" autocomplete="off"></td>
           </tr>
         </tbody>
       </table>
-      <p class="hint" id="pinHint"></p>
+      <p class="benefit-line" id="benefitLine" hidden></p>
+      <p class="hint"><span class="pin-swatch" aria-hidden="true"></span><span id="pinText"></span></p>
+      <p class="sr-only" id="live" aria-live="polite"></p>
     </section>
 
-    <figure class="strip">
-      <div class="bars" id="bars" role="img"></div>
-      <div class="months" aria-hidden="true">
-        <span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span>
-        <span>J</span><span>A</span><span>S</span><span>O</span><span class="nov">N</span><span>D</span>
+    <figure class="curve" id="curveBox">
+      <div class="legend" aria-hidden="true">
+        <span class="month" data-i18n="legendMonth"></span>
+        <span class="avg" data-bonus data-i18n="legendAvg"></span>
       </div>
-      <figcaption id="stripCaption"></figcaption>
+      <svg id="curve" role="img" height="240"></svg>
+      <div class="tip" id="tip" hidden></div>
+      <figcaption id="curveCaption"></figcaption>
     </figure>
 
-    <form class="settings" id="settings" aria-labelledby="settings-title" onsubmit="return false">
-      <h2 id="settings-title">About you</h2>
+    <form class="settings" id="settings" onsubmit="return false">
+      <h2 data-i18n="settingsTitle"></h2>
 
-      <label class="switch bonus field">13th salary in November <input type="checkbox" name="thirteenth"></label>
+      <label class="switch bonus field"><span data-i18n="thirteenth"></span><input type="checkbox" name="thirteenth"></label>
 
       <fieldset class="field">
-        <legend>Tax class</legend>
+        <legend data-i18n="taxClass"></legend>
         <div class="segmented" id="taxClass"></div>
         <p class="sub" id="taxClassHint"></p>
       </fieldset>
 
       <div class="field">
-        <label for="state">Where you work</label>
+        <label for="state" data-i18n="state"></label>
         <select id="state" name="state"></select>
       </div>
 
       <div class="pair">
         <div class="field">
-          <label for="age">Age</label>
+          <label for="age" data-i18n="age"></label>
           <input class="text" id="age" name="age" type="number" min="15" max="99" inputmode="numeric">
         </div>
         <div class="field">
-          <label for="children">Children</label>
+          <label for="children" data-i18n="children"></label>
           <select id="children" name="children">
-            <option value="0">None</option><option value="1">1</option><option value="2">2</option>
+            <option value="0"></option><option value="1">1</option><option value="2">2</option>
             <option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6+</option>
           </select>
         </div>
       </div>
 
-      <label class="switch field">Church tax <input type="checkbox" name="church"></label>
+      <label class="switch field"><span data-i18n="church"></span><input type="checkbox" name="church"></label>
 
       <fieldset class="field">
-        <legend>Health insurance</legend>
+        <legend data-i18n="insurance"></legend>
         <div class="segmented">
-          <label><input type="radio" name="insurance" value="public"><span>Public</span></label>
-          <label><input type="radio" name="insurance" value="private"><span>Private</span></label>
+          <label><input type="radio" name="insurance" value="public"><span data-i18n="public"></span></label>
+          <label><input type="radio" name="insurance" value="private"><span data-i18n="private"></span></label>
         </div>
       </fieldset>
 
       <div class="field" id="publicFields">
-        <label for="zusatzbeitrag">Insurer's extra contribution (Zusatzbeitrag)</label>
+        <label for="zusatzbeitrag" data-i18n="zb"></label>
         <input class="text" id="zusatzbeitrag" name="zusatzbeitrag" inputmode="decimal">
-        <p class="sub">In percent. 2,9 is the 2026 average.</p>
+        <p class="sub" data-i18n="zbHint"></p>
       </div>
       <div class="field" id="privateFields" hidden>
-        <label for="privatePremium">Monthly premium incl. care insurance</label>
+        <label for="privatePremium" data-i18n="premium"></label>
         <input class="text" id="privatePremium" name="privatePremium" inputmode="decimal">
         <p class="sub" id="subsidyHint"></p>
+      </div>
+
+      <div class="field">
+        <label for="benefitCard" data-i18n="benefit"></label>
+        <input class="text" id="benefitCard" name="benefitCard" inputmode="decimal">
+        <p class="sub" data-i18n="benefitHint"></p>
       </div>
     </form>
 
     <section class="breakdown" aria-labelledby="breakdown-title">
-      <h2 id="breakdown-title">Where the money goes</h2>
-      <table>
-        <thead><tr><th scope="col"></th><th scope="col">Each month</th><th scope="col" class="bonus-col" data-bonus>13th salary</th><th scope="col">Year</th></tr></thead>
-        <tbody id="breakdownBody"></tbody>
-      </table>
+      <h2 id="breakdown-title" data-i18n="breakdownTitle"></h2>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th scope="col"><span class="sr-only" data-i18n="item"></span></th><th scope="col" data-i18n="colMonth"></th><th scope="col" class="bonus-col" data-bonus data-i18n="colBonus"></th><th scope="col" data-i18n="colYear"></th></tr></thead>
+          <tbody id="breakdownBody"></tbody>
+        </table>
+      </div>
       <ul class="notes" id="notes"></ul>
+      <details class="assumptions" id="assumptions">
+        <summary data-i18n="assumptionsTitle"></summary>
+        <ul id="assumptionList"></ul>
+      </details>
     </section>
   </main>
 
-  <footer>
-    Payroll tax as withheld by your employer under the official 2026 algorithm (BMF Programmablaufplan), with the 2026 social security rates and caps. Your actual yearly tax can differ after a tax return. Mini- and midijobs, self-employment and the class IV factor method are not covered.
-  </footer>
+  <footer data-i18n="footer"></footer>
 </div>
 
 <script src="tax.js"></script>
@@ -267,52 +334,186 @@
 (function () {
   'use strict';
   const T = window.SalaryTax;
+  const Y = T.Y;
   const STORE = 'salary-finder-v1';
-  const CLASS_HINTS = {
-    1: 'Single, or married with a spouse abroad.',
-    2: 'Single parent living with your child.',
-    3: 'Married, earning clearly more than your spouse (they take class 5).',
-    4: 'Married, both earning about the same.',
-    5: 'Married, earning clearly less than your spouse (they take class 3).',
-    6: 'A second job.',
+
+  const I18N = {
+    en: {
+      docTitle: 'German Gross-to-Net Calculator {year}',
+      title: 'German gross-to-net calculator {year}',
+      lede: 'Net pay, taxes and social contributions for employees in Germany, including a 13th monthly salary. Based on the official {year} payroll tax algorithm (BMF). Edit any gross or net amount to recalculate the others.',
+      figuresTitle: 'Your salary',
+      gross: 'Gross', net: 'Net',
+      rowMonth: 'Every month', rowNov: 'November', rowNovSub: 'with 13th salary',
+      rowAvg: 'Average month', rowAvgSub: 'year ÷ 12', rowYear: 'Year',
+      cell_monthlyGross: 'monthly gross', cell_monthlyNet: 'monthly net',
+      cell_averageGross: 'average monthly gross', cell_averageNet: 'average monthly net',
+      cell_yearGross: 'yearly gross', cell_yearNet: 'yearly net',
+      pinned: 'Pinned: {cell}. Changing settings keeps this number and recalculates the rest.',
+      benefitLine: 'Plus a benefit card worth {month} a month ({yearly} a year), {status}.',
+      benefitFree: 'tax-free', benefitTaxed: 'taxed as pay',
+      live: 'Every month: {mg} € gross, {mn} € net. Year: {yg} € gross, {yn} € net.',
+      legendMonth: 'Every month', legendAvg: 'Average month incl. 13th salary',
+      capKV: 'Health cap', capRV: 'Pension cap',
+      curveAria: 'Chart of monthly net pay by monthly gross salary. Your salary: {gross} gross, {net} net.',
+      curveCaption: 'At your salary you keep {keep} ct of every extra euro. A raise of 500 € gross adds about {raise} net a month.',
+      curveHint: 'Click the curve to use that salary.',
+      tipGross: 'Gross {v}', tipNet: 'Net {v}', tipAvg: 'Average month {v}', tipKeep: 'Keeps {keep} ct per extra €',
+      settingsTitle: 'About you',
+      thirteenth: '13th salary in November',
+      taxClass: 'Tax class',
+      class1: 'Single, or married with a spouse abroad.',
+      class2: 'Single parent living with your child.',
+      class3: 'Married, earning clearly more than your spouse (they take class 5).',
+      class4: 'Married, both earning about the same.',
+      class5: 'Married, earning clearly less than your spouse (they take class 3).',
+      class6: 'A second job.',
+      class2NeedsChild: 'Class 2 is for single parents, so it needs at least one child.',
+      state: 'Where you work', age: 'Age', children: 'Children', childrenNone: 'None',
+      church: 'Church tax',
+      insurance: 'Health insurance', public: 'Public', private: 'Private',
+      zb: "Insurer's extra contribution (Zusatzbeitrag)",
+      zbHint: 'In percent. {zbAvg} is the {year} average.',
+      premium: 'Monthly premium incl. care insurance',
+      subsidyHint: 'Your employer pays {amount} of it (half, up to the {year} maximum).',
+      benefit: 'Benefit card per month',
+      benefitHint: 'Tax-free up to {cardLimit} a month. Above that, the whole amount is taxed.',
+      breakdownTitle: 'Where the money goes', item: 'Item',
+      colMonth: 'Each month', colBonus: '13th salary', colYear: 'Year',
+      row_gross: 'Gross', row_incomeTax: 'Income tax', row_soli: 'Solidarity surcharge', row_church: 'Church tax',
+      row_health: 'Health insurance', row_healthPrivate: 'Private health and care', row_care: 'Long-term care',
+      row_pension: 'Pension', row_unemployment: 'Unemployment insurance', row_net: 'Net',
+      row_benefit: 'Benefit card', row_total: 'Net incl. benefit card',
+      note_midijob: 'With an average of {limit} a month or less, special mini- and midijob rules apply, so these results are only approximate.',
+      note_jaeg: 'Private health insurance is normally only possible from {limit} a year, including the 13th salary.',
+      note_benefitTaxable: 'The benefit card is above {limit} a month, so the whole amount is taxed and subject to contributions.',
+      assumptionsTitle: 'Assumptions',
+      a1: 'Figures show the payroll tax your employer withholds under the official {year} algorithm (BMF Programmablaufplan). Your final tax after a tax return can differ, for example because of work expenses or Soli on the 13th salary.',
+      a2: 'The 13th salary equals one monthly gross salary and is paid in November.',
+      a3: 'Children are under 25. In tax classes 1 and 2 each child counts as half a child allowance, because parents usually share it; in classes 3 and 4 as a full one. This only affects Soli and church tax.',
+      a4: 'Private health insurance: the whole premium is treated as basic cover for tax purposes. The employer pays half, up to the {year} maximum.',
+      a5: 'Social contributions use the {year} rates and caps. Mini- and midijobs, self-employment and the class 4 factor method are not covered.',
+      summary: 'Tax class {cls}, {state}, age {age}, children: {children}, church tax: {church}, health insurance: {insurance}, 13th salary: {thirteenth}, benefit card: {card}.',
+      yes: 'yes', no: 'no',
+      footer: 'Everything is calculated in your browser. Nothing you enter leaves this page.',
+    },
+    de: {
+      docTitle: 'Brutto-Netto-Rechner {year}',
+      title: 'Brutto-Netto-Rechner {year}',
+      lede: 'Nettogehalt, Steuern und Sozialabgaben für Arbeitnehmer in Deutschland, inklusive 13. Monatsgehalt. Grundlage ist der offizielle Programmablaufplan {year} des BMF. Ändern Sie einen beliebigen Brutto- oder Nettobetrag, um alle anderen neu zu berechnen.',
+      figuresTitle: 'Ihr Gehalt',
+      gross: 'Brutto', net: 'Netto',
+      rowMonth: 'Jeden Monat', rowNov: 'November', rowNovSub: 'mit 13. Gehalt',
+      rowAvg: 'Durchschnittsmonat', rowAvgSub: 'Jahr ÷ 12', rowYear: 'Jahr',
+      cell_monthlyGross: 'Monatsbrutto', cell_monthlyNet: 'Monatsnetto',
+      cell_averageGross: 'durchschnittliches Monatsbrutto', cell_averageNet: 'durchschnittliches Monatsnetto',
+      cell_yearGross: 'Jahresbrutto', cell_yearNet: 'Jahresnetto',
+      pinned: 'Fixiert: {cell}. Wenn Sie Angaben ändern, bleibt dieser Betrag gleich und alles andere wird neu berechnet.',
+      benefitLine: 'Dazu eine Sachbezugskarte über {month} im Monat ({yearly} im Jahr), {status}.',
+      benefitFree: 'steuer- und abgabenfrei', benefitTaxed: 'als Arbeitslohn versteuert',
+      live: 'Jeden Monat: {mg} € brutto, {mn} € netto. Jahr: {yg} € brutto, {yn} € netto.',
+      legendMonth: 'Jeden Monat', legendAvg: 'Durchschnittsmonat inkl. 13. Gehalt',
+      capKV: 'BBG KV', capRV: 'BBG RV',
+      curveAria: 'Diagramm: Monatsnetto in Abhängigkeit vom Monatsbrutto. Ihr Gehalt: {gross} brutto, {net} netto.',
+      curveCaption: 'Bei Ihrem Gehalt bleiben von jedem zusätzlichen Euro {keep} ct netto. 500 € mehr brutto bringen etwa {raise} netto im Monat.',
+      curveHint: 'Klicken Sie auf die Kurve, um dieses Gehalt zu übernehmen.',
+      tipGross: 'Brutto {v}', tipNet: 'Netto {v}', tipAvg: 'Durchschnittsmonat {v}', tipKeep: '{keep} ct je zusätzlichem €',
+      settingsTitle: 'Ihre Angaben',
+      thirteenth: '13. Gehalt im November',
+      taxClass: 'Steuerklasse',
+      class1: 'Ledig oder verheiratet mit Partner im Ausland.',
+      class2: 'Alleinerziehend mit Kind im Haushalt.',
+      class3: 'Verheiratet, deutlich höheres Einkommen als der Partner (Partner in Klasse 5).',
+      class4: 'Verheiratet, beide verdienen ähnlich viel.',
+      class5: 'Verheiratet, deutlich geringeres Einkommen als der Partner (Partner in Klasse 3).',
+      class6: 'Zweitjob.',
+      class2NeedsChild: 'Klasse 2 gilt für Alleinerziehende und setzt mindestens ein Kind voraus.',
+      state: 'Bundesland des Arbeitsorts', age: 'Alter', children: 'Kinder', childrenNone: 'Keine',
+      church: 'Kirchensteuer',
+      insurance: 'Krankenversicherung', public: 'Gesetzlich', private: 'Privat',
+      zb: 'Zusatzbeitrag der Krankenkasse',
+      zbHint: 'In Prozent. {zbAvg} ist der Durchschnitt {year}.',
+      premium: 'Monatsbeitrag inkl. Pflegeversicherung',
+      subsidyHint: 'Ihr Arbeitgeber zahlt davon {amount} (die Hälfte, höchstens bis zum Höchstbetrag {year}).',
+      benefit: 'Sachbezugskarte pro Monat',
+      benefitHint: 'Bis {cardLimit} im Monat steuer- und abgabenfrei. Darüber wird der gesamte Betrag versteuert.',
+      breakdownTitle: 'Wohin das Geld geht', item: 'Posten',
+      colMonth: 'Pro Monat', colBonus: '13. Gehalt', colYear: 'Jahr',
+      row_gross: 'Brutto', row_incomeTax: 'Lohnsteuer', row_soli: 'Solidaritätszuschlag', row_church: 'Kirchensteuer',
+      row_health: 'Krankenversicherung', row_healthPrivate: 'Private Kranken- und Pflegeversicherung', row_care: 'Pflegeversicherung',
+      row_pension: 'Rentenversicherung', row_unemployment: 'Arbeitslosenversicherung', row_net: 'Netto',
+      row_benefit: 'Sachbezugskarte', row_total: 'Netto inkl. Sachbezugskarte',
+      note_midijob: 'Bei durchschnittlich {limit} im Monat oder weniger gelten Sonderregeln für Mini- und Midijobs. Die Ergebnisse sind dann nur Näherungswerte.',
+      note_jaeg: 'Eine private Krankenversicherung ist in der Regel erst ab {limit} im Jahr möglich, inklusive 13. Gehalt.',
+      note_benefitTaxable: 'Die Sachbezugskarte liegt über {limit} im Monat. Deshalb ist der gesamte Betrag steuer- und beitragspflichtig.',
+      assumptionsTitle: 'Annahmen',
+      a1: 'Angezeigt wird die Lohnsteuer, die Ihr Arbeitgeber nach dem offiziellen Programmablaufplan {year} des BMF einbehält. Die endgültige Steuer nach der Steuererklärung kann abweichen, etwa durch Werbungskosten oder den Solidaritätszuschlag auf das 13. Gehalt.',
+      a2: 'Das 13. Gehalt entspricht einem Monatsbrutto und wird im November ausgezahlt.',
+      a3: 'Kinder sind jünger als 25. In den Steuerklassen 1 und 2 zählt jedes Kind mit dem Zähler 0,5, weil sich die Eltern den Freibetrag meist teilen; in den Klassen 3 und 4 mit 1,0. Das wirkt sich nur auf Solidaritätszuschlag und Kirchensteuer aus.',
+      a4: 'Private Krankenversicherung: Der gesamte Beitrag wird steuerlich als Basisabsicherung behandelt. Der Arbeitgeber zahlt die Hälfte, höchstens bis zum Höchstbetrag {year}.',
+      a5: 'Sozialabgaben mit den Beitragssätzen und Beitragsbemessungsgrenzen {year}. Mini- und Midijobs, Selbstständige und das Faktorverfahren in Klasse 4 sind nicht abgedeckt.',
+      summary: 'Steuerklasse {cls}, {state}, Alter {age}, Kinder: {children}, Kirchensteuer: {church}, Krankenversicherung: {insurance}, 13. Gehalt: {thirteenth}, Sachbezugskarte: {card}.',
+      yes: 'ja', no: 'nein',
+      footer: 'Alles wird in Ihrem Browser berechnet. Ihre Eingaben verlassen diese Seite nicht.',
+    },
   };
-  const ROWS = [
-    ['gross', 'Gross', 'gross'],
-    ['incomeTax', 'Income tax', 'tax'],
-    ['soli', 'Solidarity surcharge', 'tax'],
-    ['church', 'Church tax', 'tax'],
-    ['health', 'Health insurance', 'social'],
-    ['care', 'Long-term care', 'social'],
-    ['pension', 'Pension', 'social'],
-    ['unemployment', 'Unemployment insurance', 'social'],
-    ['net', 'Net', 'net'],
-  ];
 
   const money = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const euros = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
+  const whole = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
   const fmt = (c) => money.format(c / 100);
-  const fmtEur = (c) => euros.format(Math.round(c / 100)) + ' €';
+  const fmtEurC = (c) => fmt(c) + ' €';
+  const fmtEur = (c) => whole.format(Math.round(c / 100)) + ' €';
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const $ = (id) => document.getElementById(id);
 
+  let lang = (navigator.language || 'en').toLowerCase().startsWith('de') ? 'de' : 'en';
   let settings = { ...T.DEFAULTS };
   let anchor = { field: 'monthlyGross', cents: 500000 };
   try {
-    const saved = JSON.parse(localStorage.getItem(STORE));
-    const restored = T.restore(saved);
+    const restored = T.restore(JSON.parse(localStorage.getItem(STORE)));
     settings = restored.settings;
     if (restored.anchor) anchor = restored.anchor;
+    if (restored.lang) lang = restored.lang;
   } catch (e) { /* storage unavailable */ }
 
-  const form = document.getElementById('settings');
-  const cells = [...document.querySelectorAll('input.cell')];
+  const COMMON = { year: Y.YEAR, zbAvg: String(Y.ZB_AVERAGE).replace('.', ','), cardLimit: fmtEur(Y.SACHBEZUG_LIMIT) };
+  function t(key, params) {
+    const p = { ...COMMON, ...params };
+    return (I18N[lang][key] ?? I18N.en[key]).replace(/\{(\w+)\}/g, (_, k) => p[k]);
+  }
 
-  // Build dynamic settings controls
-  document.getElementById('taxClass').innerHTML = [1, 2, 3, 4, 5, 6].map((n) =>
-    `<label><input type="radio" name="taxClass" value="${n}" aria-label="Tax class ${n}"><span>${n}</span></label>`).join('');
-  document.getElementById('state').innerHTML = T.STATES.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
-  document.getElementById('breakdownBody').innerHTML = ROWS.map(([k, label, kind]) =>
-    `<tr class="${kind}" data-row="${k}"><th scope="row">${label}</th><td data-col="regular"></td><td data-col="bonus" data-bonus></td><td data-col="year"></td></tr>`).join('');
-  document.getElementById('bars').innerHTML = Array.from({ length: 12 }, (_, i) =>
-    `<div class="bar"><span class="reg"></span>${i === 10 ? '<span class="bon"></span>' : ''}</div>`).join('');
+  const form = $('settings');
+  const svg = $('curve');
+  const cells = [...document.querySelectorAll('input.cell')];
+  const ROWS = [
+    ['gross', 'gross'], ['incomeTax', 'tax'], ['soli', 'tax'], ['church', 'tax'],
+    ['health', 'social'], ['care', 'social'], ['pension', 'social'], ['unemployment', 'social'],
+    ['net', 'net'], ['benefit', 'benefit'], ['total', 'total'],
+  ];
+  let lastResult = null, lastGross = 0, editStart = null, liveTimer = 0;
+
+  $('taxClass').innerHTML = [1, 2, 3, 4, 5, 6].map((n) =>
+    `<label><input type="radio" name="taxClass" value="${n}"><span>${n}</span></label>`).join('');
+  $('breakdownBody').innerHTML = ROWS.map(([k, kind]) =>
+    `<tr class="${kind}" data-row="${k}"><th scope="row"></th><td data-col="regular"></td><td data-col="bonus" data-bonus></td><td data-col="year"></td></tr>`).join('');
+
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.title = t('docTitle');
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    for (const el of cells) el.setAttribute('aria-label', cap(t('cell_' + el.dataset.field)));
+    form.querySelectorAll('[name=taxClass]').forEach((r) => r.setAttribute('aria-label', `${t('taxClass')} ${r.value}`));
+    form.state.innerHTML = T.STATES.map(([c, en, de]) => `<option value="${c}">${lang === 'de' ? de : en}</option>`).join('');
+    form.state.value = settings.state;
+    form.children.options[0].textContent = t('childrenNone');
+    $('assumptionList').innerHTML = '';
+    for (const k of ['a1', 'a2', 'a3', 'a4', 'a5']) {
+      const li = document.createElement('li');
+      li.textContent = t(k);
+      $('assumptionList').appendChild(li);
+    }
+    document.querySelector(`[name=lang][value="${lang}"]`).checked = true;
+  }
 
   function writeForm() {
     form.thirteenth.checked = settings.thirteenth;
@@ -324,107 +525,251 @@
     form.children.value = String(settings.children);
     form.zusatzbeitrag.value = String(settings.zusatzbeitrag).replace('.', ',');
     form.privatePremium.value = fmt(settings.privatePremium);
+    form.benefitCard.value = fmt(settings.benefitCard);
   }
 
   function readForm() {
     const num = (v, fallback) => { const n = parseFloat(String(v).replace(',', '.')); return Number.isFinite(n) ? n : fallback; };
-    settings = {
+    const amount = (v, fallback, max) => { const c = T.parseAmount(v); return c === null ? fallback : Math.min(c, max); };
+    const next = {
       thirteenth: form.thirteenth.checked,
       church: form.church.checked,
       taxClass: Number(form.querySelector('[name=taxClass]:checked').value),
       insurance: form.querySelector('[name=insurance]:checked').value,
       state: form.state.value,
-      age: Math.max(15, Math.round(num(form.age.value, settings.age))),
+      age: Math.min(99, Math.max(15, Math.round(num(form.age.value, settings.age)))),
       children: Number(form.children.value),
-      zusatzbeitrag: Math.min(10, Math.max(0, num(form.zusatzbeitrag.value, settings.zusatzbeitrag))),
-      privatePremium: T.parseAmount(form.privatePremium.value) ?? settings.privatePremium,
+      zusatzbeitrag: Math.round(Math.min(10, Math.max(0, num(form.zusatzbeitrag.value, settings.zusatzbeitrag))) * 100) / 100,
+      privatePremium: amount(form.privatePremium.value, settings.privatePremium, 1000000),
+      benefitCard: amount(form.benefitCard.value, settings.benefitCard, 100000),
     };
+    // A pinned average-month value disappears with the 13th salary: keep the matching monthly figure.
+    if (settings.thirteenth && !next.thirteenth && anchor.field.startsWith('average') && lastResult) {
+      const f = anchor.field.replace('average', 'monthly');
+      anchor = { field: f, cents: T.read(lastResult, f) };
+    }
+    settings = T.normalize(next);
   }
 
   function grossFromAnchor() {
     return anchor.field === 'monthlyGross' ? Math.min(anchor.cents, T.MAX_GROSS) : T.solve(settings, anchor.field, anchor.cents);
   }
 
-  function setText(el, text) {
+  function setText(el, text, quiet) {
     const prop = el.tagName === 'INPUT' ? 'value' : 'textContent';
     if (el[prop] === text) return;
     el[prop] = text;
+    if (quiet) return;
     el.classList.remove('flash');
     void el.offsetWidth;
     el.classList.add('flash');
     setTimeout(() => el.classList.remove('flash'), 60);
   }
 
-  function render(activeEl) {
-    const r = T.calculate(settings, grossFromAnchor());
+  // Gross → net curve
+  const PL = 54, PR = 14, PT = 20, PB = 30;
+  let geo = null;
+
+  function niceStep(range, count) {
+    const raw = range / count;
+    const p = 10 ** Math.floor(Math.log10(raw));
+    return [1, 2, 2.5, 5, 10].map((m) => m * p).find((s) => s >= raw);
+  }
+
+  const keepAt = (g, net) => Math.round((T.calculate(settings, g + 10000).regular.net - net) / 100);
+
+  function renderCurve() {
+    const r = lastResult, gross = lastGross, on = settings.thirteenth;
+    const W = Math.max(280, Math.round(svg.getBoundingClientRect().width) || 640);
+    const H = W < 520 ? 200 : 240;
+    const xMax = Math.max(800000, Math.ceil(gross * 2 / 100000) * 100000);
+    const pts = [];
+    for (let i = 0; i <= 80; i++) {
+      const g = Math.round(xMax * i / 80);
+      const c = T.calculate(settings, g);
+      pts.push([g, c.regular.net, c.average.net]);
+    }
+    const top = Math.max(1, ...pts.map((p) => (on ? Math.max(p[1], p[2]) : p[1])));
+    const yStep = niceStep(top / 100, 4) * 100;
+    const yMax = Math.ceil(top / yStep) * yStep;
+    const xStep = niceStep(xMax / 100, W < 520 ? 3 : 5) * 100;
+    const X = (g) => PL + g / xMax * (W - PL - PR);
+    const Yp = (v) => H - PB - Math.max(0, v) / yMax * (H - PT - PB);
+    const path = (i) => 'M' + pts.map((p) => `${X(p[0]).toFixed(1)},${Yp(p[i]).toFixed(1)}`).join('L');
+
+    let s = '<g class="grid">';
+    for (let v = 0; v <= yMax; v += yStep) {
+      s += `<line x1="${PL}" x2="${W - PR}" y1="${Yp(v)}" y2="${Yp(v)}"/><text x="${PL - 8}" y="${Yp(v) + 4}" text-anchor="end">${whole.format(v / 100)}</text>`;
+    }
+    for (let g = 0; g <= xMax; g += xStep) {
+      const anchorPos = g === 0 ? 'start' : g + xStep > xMax ? 'end' : 'middle';
+      s += `<text x="${X(g)}" y="${H - PB + 18}" text-anchor="${anchorPos}">${whole.format(g / 100)}</text>`;
+    }
+    s += '</g>';
+    for (const [c, key] of [[Y.BBG_KV_MONTH, 'capKV'], [Y.BBG_RV_MONTH, 'capRV']]) {
+      if (c < xMax) s += `<g class="cap"><line x1="${X(c)}" x2="${X(c)}" y1="${PT}" y2="${H - PB}"/><text x="${X(c) + 4}" y="${PT - 6}">${t(key)}</text></g>`;
+    }
+    if (on) s += `<path class="line-avg" d="${path(2)}"/>`;
+    s += `<path class="line-month" d="${path(1)}"/>`;
+    s += `<g class="you"><line x1="${X(gross)}" x2="${X(gross)}" y1="${Yp(r.regular.net)}" y2="${H - PB}"/><circle cx="${X(gross)}" cy="${Yp(r.regular.net)}" r="6"/></g>`;
+    s += '<g class="hover"><line/><circle r="5"/></g>';
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('height', H);
+    svg.innerHTML = s;
+    $('tip').hidden = true;
+    svg.setAttribute('aria-label', t('curveAria', { gross: fmtEurC(gross), net: fmtEurC(r.regular.net) }));
+    geo = { W, H, xMax, X, Yp };
+
+    const raise = T.calculate(settings, gross + 50000).regular.net - r.regular.net;
+    $('curveCaption').textContent = `${t('curveCaption', { keep: keepAt(gross, r.regular.net), raise: fmtEur(raise) })} ${t('curveHint')}`;
+  }
+
+  function pointerGross(e) {
+    const rect = svg.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * geo.W / rect.width;
+    const g = (x - PL) / (geo.W - PL - PR) * geo.xMax;
+    return Math.min(geo.xMax, Math.max(0, Math.round(g / 1000) * 1000));
+  }
+
+  svg.addEventListener('pointermove', (e) => {
+    if (!geo) return;
+    const g = pointerGross(e);
+    const c = T.calculate(settings, g);
+    const hv = svg.querySelector('.hover');
+    const x = geo.X(g), y = geo.Yp(c.regular.net);
+    hv.classList.add('show');
+    const line = hv.querySelector('line');
+    line.setAttribute('x1', x); line.setAttribute('x2', x);
+    line.setAttribute('y1', PT); line.setAttribute('y2', geo.H - PB);
+    hv.querySelector('circle').setAttribute('cx', x);
+    hv.querySelector('circle').setAttribute('cy', y);
+    const lines = [t('tipGross', { v: fmtEurC(g) }), t('tipNet', { v: fmtEurC(c.regular.net) })];
+    if (settings.thirteenth) lines.push(t('tipAvg', { v: fmtEurC(c.average.net) }));
+    lines.push(t('tipKeep', { keep: keepAt(g, c.regular.net) }));
+    const tip = $('tip');
+    tip.textContent = lines.join('\n');
+    tip.hidden = false;
+    // SVG elements have no offsetLeft: position from bounding boxes relative to the figure.
+    const box = $('curveBox').getBoundingClientRect(), rect = svg.getBoundingClientRect();
+    const scale = rect.width / geo.W;
+    const half = tip.offsetWidth / 2;
+    tip.style.left = Math.min(Math.max(rect.left - box.left + x * scale, half), box.width - half) + 'px';
+    tip.style.top = (rect.top - box.top + y * scale) + 'px';
+  });
+  svg.addEventListener('pointerleave', () => {
+    $('tip').hidden = true;
+    const hv = svg.querySelector('.hover');
+    if (hv) hv.classList.remove('show');
+  });
+  svg.addEventListener('click', (e) => {
+    if (!geo) return;
+    anchor = { field: 'monthlyGross', cents: pointerGross(e) };
+    render(null, { announce: true });
+  });
+
+  function render(activeEl, { quiet = false, announce = false } = {}) {
+    lastGross = grossFromAnchor();
+    const r = T.calculate(settings, lastGross);
+    lastResult = r;
     const on = settings.thirteenth;
+    const card = settings.benefitCard;
 
     for (const el of cells) {
       el.classList.toggle('pinned', el.dataset.field === anchor.field);
-      if (el !== activeEl) setText(el, fmt(T.read(r, el.dataset.field)));
+      if (el !== activeEl) setText(el, fmt(T.read(r, el.dataset.field)), quiet);
     }
-    setText(document.getElementById('novGross'), fmt(r.november.gross));
-    setText(document.getElementById('novNet'), fmt(r.november.net));
+    setText($('novGross'), fmt(r.november.gross), quiet);
+    setText($('novNet'), fmt(r.november.net), quiet);
     document.querySelectorAll('[data-bonus]').forEach((el) => { el.hidden = !on; });
-
-    const label = document.querySelector(`[data-field="${anchor.field}"]`).getAttribute('aria-label');
-    document.getElementById('pinHint').textContent = `Kept fixed when you change settings: ${label.toLowerCase()}.`;
-
-    // Year strip
-    const max = Math.max(r.november.net, r.regular.net, 1);
-    document.querySelectorAll('#bars .bar').forEach((bar, i) => {
-      bar.querySelector('.reg').style.height = (r.regular.net / max * 100) + '%';
-      const bon = bar.querySelector('.bon');
-      if (bon) bon.style.height = (on ? r.bonus.net / max * 100 : 0) + '%';
+    $('pinText').textContent = t('pinned', { cell: t('cell_' + anchor.field) });
+    $('benefitLine').hidden = card === 0;
+    $('benefitLine').textContent = t('benefitLine', {
+      month: fmtEurC(card), yearly: fmtEurC(card * 12),
+      status: t(card > Y.SACHBEZUG_LIMIT ? 'benefitTaxed' : 'benefitFree'),
     });
-    document.getElementById('bars').setAttribute('aria-label',
-      `Net pay per month: ${fmtEur(r.regular.net)}` + (on ? `, November ${fmtEur(r.november.net)}` : ''));
-    document.getElementById('stripCaption').innerHTML = on
-      ? `You take home <strong>${fmtEur(r.regular.net)}</strong> most months and <strong>${fmtEur(r.november.net)}</strong> in November. The 13th salary keeps <strong>${Math.round(r.bonus.net / Math.max(r.bonus.gross, 1) * 100)}%</strong> of its gross, compared with ${Math.round(r.regular.net / Math.max(r.regular.gross, 1) * 100)}% for a normal month.`
-      : `You take home <strong>${fmtEur(r.regular.net)}</strong> every month.`;
 
-    // Breakdown
+    renderCurve();
+
     for (const [k] of ROWS) {
       const row = document.querySelector(`[data-row="${k}"]`);
-      row.hidden = k === 'church' && !settings.church;
-      const sign = ['gross', 'net'].includes(k) ? '' : '−';
+      row.hidden = (k === 'church' && !settings.church) || (k === 'care' && settings.insurance === 'private')
+        || ((k === 'benefit' || k === 'total') && card === 0);
+      row.querySelector('th').textContent = t(k === 'health' && settings.insurance === 'private' ? 'row_healthPrivate' : 'row_' + k);
+      const sign = ['gross', 'net', 'total'].includes(k) ? '' : k === 'benefit' ? '+' : '−';
       for (const col of ['regular', 'bonus', 'year']) {
-        const v = r[col][k];
+        const v = k === 'total' ? r[col].net + r[col].benefit : r[col][k];
         row.querySelector(`[data-col="${col}"]`).textContent = (v ? sign : '') + fmt(v);
       }
     }
-    document.querySelector('[data-row="health"] th').textContent =
-      settings.insurance === 'private' ? 'Private health and care' : 'Health insurance';
-    document.querySelector('[data-row="care"]').hidden = settings.insurance === 'private';
-    document.getElementById('notes').innerHTML = r.notes.map((n) => `<li>${n}</li>`).join('');
+    const notes = $('notes');
+    notes.innerHTML = '';
+    for (const n of r.notes) {
+      const li = document.createElement('li');
+      li.textContent = t('note_' + n.code, { limit: fmtEur(n.limit) });
+      notes.appendChild(li);
+    }
 
-    // Settings hints
-    document.getElementById('taxClassHint').textContent = CLASS_HINTS[settings.taxClass];
-    document.getElementById('publicFields').hidden = settings.insurance !== 'public';
-    document.getElementById('privateFields').hidden = settings.insurance !== 'private';
-    const subsidy = T.pkvSubsidy(settings);
-    document.getElementById('subsidyHint').textContent = `Your employer pays ${fmt(subsidy)} € of it (half, up to a 2026 cap).`;
+    const noKids = settings.children === 0;
+    const c2 = form.querySelector('[name=taxClass][value="2"]');
+    c2.disabled = noKids;
+    c2.parentElement.classList.toggle('disabled', noKids);
+    c2.parentElement.title = noKids ? t('class2NeedsChild') : '';
+    c2.setAttribute('aria-label', `${t('taxClass')} 2` + (noKids ? `. ${t('class2NeedsChild')}` : ''));
+    $('taxClassHint').textContent = t('class' + settings.taxClass);
+    $('publicFields').hidden = settings.insurance !== 'public';
+    $('privateFields').hidden = settings.insurance !== 'private';
+    $('subsidyHint').textContent = t('subsidyHint', { amount: fmtEurC(T.pkvSubsidy(settings)) });
 
-    try { localStorage.setItem(STORE, JSON.stringify({ settings, anchor })); } catch (e) { /* ignore */ }
+    const state = T.STATES.find(([c]) => c === settings.state);
+    $('printSummary').textContent = t('summary', {
+      cls: settings.taxClass, state: lang === 'de' ? state[2] : state[1], age: settings.age,
+      children: settings.children, church: t(settings.church ? 'yes' : 'no'),
+      insurance: lang === 'en' ? t(settings.insurance).toLowerCase() : t(settings.insurance),
+      thirteenth: t(on ? 'yes' : 'no'), card: fmtEurC(card),
+    });
+
+    if (announce) {
+      clearTimeout(liveTimer);
+      liveTimer = setTimeout(() => {
+        $('live').textContent = t('live', { mg: fmt(r.regular.gross), mn: fmt(r.regular.net), yg: fmt(r.year.gross), yn: fmt(r.year.net) });
+      }, 800);
+    }
+
+    try { localStorage.setItem(STORE, JSON.stringify({ settings, anchor, lang })); } catch (e) { /* ignore */ }
   }
 
   for (const el of cells) {
+    el.addEventListener('focus', () => { editStart = { anchor: { ...anchor } }; el.select(); });
     el.addEventListener('input', () => {
       const cents = T.parseAmount(el.value);
       el.setAttribute('aria-invalid', cents === null ? 'true' : 'false');
       if (cents === null) return;
       anchor = { field: el.dataset.field, cents };
-      render(el);
+      render(el, { announce: true });
     });
-    el.addEventListener('focus', () => el.select());
-    el.addEventListener('blur', () => { el.removeAttribute('aria-invalid'); render(null); });
-    el.addEventListener('keydown', (e) => { if (e.key === 'Enter') el.blur(); });
+    el.addEventListener('blur', () => { el.removeAttribute('aria-invalid'); editStart = null; render(null); });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') el.blur();
+      if (e.key === 'Escape' && editStart) { anchor = editStart.anchor; el.blur(); }
+    });
   }
   form.addEventListener('change', () => { readForm(); writeForm(); render(null); });
-  form.addEventListener('input', (e) => { if (e.target.type !== 'text' && !e.target.classList.contains('text')) return; readForm(); render(null); });
+  form.addEventListener('input', (e) => { if (!e.target.classList.contains('text')) return; readForm(); render(null); });
+  document.querySelectorAll('[name=lang]').forEach((radio) => radio.addEventListener('change', () => {
+    lang = radio.value;
+    applyLang();
+    render(document.activeElement, { quiet: true });
+  }));
+  window.addEventListener('beforeprint', () => { $('assumptions').open = true; });
+  let resizeFrame = 0;
+  new ResizeObserver(() => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => { if (lastResult) renderCurve(); });
+  }).observe($('curveBox'));
 
+  applyLang();
   writeForm();
-  render(null);
+  render(null, { quiet: true });
 })();
 </script>
 </body>
