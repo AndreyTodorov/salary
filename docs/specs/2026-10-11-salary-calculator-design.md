@@ -224,3 +224,9 @@ Based on three independent reviews (calculation audit against the official BMF p
 - **Themes:** Slate & Mint (IBM Plex Sans), Midnight Terminal (Manrope, Barlow Semi Condensed figures), Bauhaus (Work Sans, 4 px corners, 2 px borders) and Lavender Dusk (Figtree). Each defines a light and a dark palette: `paper`, `surface`, `field`, `ink`, `muted`, `line`, `edit`, `net`, `net-ink` (net for small text), `tax`, `social`, `bonus`, `bonus-ink`, `flash`, `ring`, `pin-ink`, `shadow`, plus `font-ui`, `font-fig`, `radius`, `radius-sm`, `bw`.
 - **Picker** in the settings column under "Appearance": colour mode (Auto, Light, Dark), light theme, dark theme. Defaults: Auto, Slate & Mint for light, Midnight Terminal for dark. Stored in `localStorage` under `salary-theme-v1`, not in the share link. A small script in `<head>` applies the remembered theme before the first paint; without JavaScript the defaults apply through `prefers-color-scheme`.
 - Fonts are self-hosted latin subsets in `fonts/` (SIL OFL, `fonts/LICENSES.md`); only the active theme's faces are fetched. Archivo was removed.
+
+### Revision 5a: preferences popover, collapsible settings, compact phone layout
+
+- Language, colour mode and the two theme pickers live in a popover ("Display" / "Anzeige") opened from a button in the top-right, next to "Copy link". Native `popover`, positioned under its button and clamped to the viewport.
+- "About you" is a collapsible card (`<details>`). Open by default from 900 px, collapsed on smaller screens. While collapsed, a one-line summary shows tax class, state, insurance, church tax and extra payments.
+- Phone: the intro sentence is hidden below 900 px, cards use 1 rem padding, the average-month row reads "Average" / "Ø Monat", and the breakdown label column is wide enough not to hyphenate.

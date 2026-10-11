@@ -122,7 +122,7 @@
   :focus-visible { outline: 2px solid var(--net); outline-offset: 2px; }
 
   /* Masthead */
-  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem 1rem; flex-wrap: wrap; }
   .brand { min-width: 0; }
   h1 { margin: 0; font-size: 1.375rem; line-height: 1.25; font-weight: 700; letter-spacing: -.01em; }
   .lede { margin: .15rem 0 0; color: var(--muted); font-size: .9375rem; max-width: 60ch; }
@@ -135,6 +135,13 @@
   .btn:hover { border-color: var(--edit); }
   .btn svg { width: 1rem; height: 1rem; flex: none; }
   .btn.done { color: var(--net); border-color: var(--net); }
+  .btn[aria-expanded="true"] { border-color: var(--ink); }
+  .prefs {
+    position: fixed; inset: auto; margin: 0; width: min(20rem, calc(100vw - 2rem)); padding: 1rem 1rem .25rem;
+    background: var(--surface); color: var(--ink); border: var(--bw) solid var(--line); border-radius: var(--radius);
+    box-shadow: 0 12px 32px -12px rgba(0, 0, 0, .35);
+  }
+  .prefs .field.last { margin-bottom: .75rem; }
   h2 { font-size: 1.0625rem; font-weight: 650; margin: 0 0 1rem; }
   h3 { font-size: .9375rem; font-weight: 600; margin: 0 0 .6rem; }
   h3 small, h2 small { display: block; color: var(--muted); font-size: .8125rem; font-weight: 400; }
@@ -158,6 +165,20 @@
   .results { grid-area: results; display: grid; gap: 1.25rem; min-width: 0; }
   .details { grid-area: details; display: grid; gap: 1.25rem; min-width: 0; }
   .settings { grid-area: settings; min-width: 0; }
+  .about summary {
+    display: flex; align-items: center; gap: .5rem .75rem; flex-wrap: wrap; cursor: pointer; list-style: none;
+    margin: -1.25rem; padding: 1.1rem 1.25rem; border-radius: var(--radius);
+  }
+  .about summary::-webkit-details-marker { display: none; }
+  .about summary:focus-visible { outline: 2px solid var(--net); outline-offset: -4px; }
+  .about-title { font-size: 1.0625rem; font-weight: 650; }
+  .about-sum { flex: 1 1 100%; color: var(--muted); font-size: .8125rem; order: 3; }
+  .about[open] .about-sum { display: none; }
+  .about .chev { width: 1.1rem; height: 1.1rem; margin-left: auto; color: var(--muted); transition: transform .2s; }
+  .about[open] .chev { transform: rotate(180deg); }
+  .about[open] summary { margin-bottom: 0; }
+  .about form { padding-top: 1rem; }
+  .short { display: none; }
   @media (min-width: 900px) {
     .layout {
       grid-template-columns: 19rem minmax(0, 1fr); column-gap: 2rem;
@@ -212,7 +233,16 @@
     background: var(--flash); color: var(--net-ink); font-size: .875rem; font-weight: 600;
   }
   .benefit-line { margin: 0; color: var(--muted); font-size: .875rem; }
+  @media (max-width: 899px) {
+    .lede { display: none; }
+    .top { align-items: center; }
+    .layout, .results, .details { gap: 1rem; }
+  }
   @media (max-width: 479px) {
+    .card { padding: 1rem; }
+    .about summary { margin: -1rem; padding: .9rem 1rem; }
+    .long { display: none; }
+    .short { display: inline; }
     .figures th[scope="row"] { padding-right: .4rem; width: 26%; }
     .figures td { padding-left: .4rem; width: 37%; }
     .figures .cell, .figures .out { font-size: 1.125rem; }
@@ -241,7 +271,7 @@
   .breakdown th, .breakdown td { padding: .55rem 0 .55rem .75rem; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
   .breakdown thead th { border-top: 0; border-bottom: 1px solid var(--line); }
   .breakdown tbody tr:first-child > * { border-top: 0; }
-  .breakdown th:first-child { text-align: left; padding-left: 0; white-space: normal; min-width: 9rem; }
+  .breakdown th:first-child { text-align: left; padding-left: 0; white-space: normal; min-width: 11rem; }
   .breakdown tr > :first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); padding-right: .6rem; hyphens: auto; }
   .breakdown thead th { font-weight: 500; color: var(--muted); }
   .breakdown thead th.bonus-col { color: var(--bonus-ink); }
@@ -321,8 +351,6 @@
   .segmented label.disabled { cursor: not-allowed; }
   .segmented label.disabled span { opacity: .35; }
   .segmented input:disabled { cursor: not-allowed; }
-  .lang { flex: none; width: 6.5rem; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow); }
-  .lang span { min-height: 2.1rem; padding: .25rem; font-size: .8125rem; }
   .switch { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 2.75rem; cursor: pointer; font-weight: 600; font-size: .9375rem; }
   .switch input { appearance: none; width: 3rem; height: 1.75rem; border-radius: 1rem; background: var(--edit); position: relative; cursor: pointer; flex: none; margin: 0; transition: background .2s; }
   .switch input::after { content: ""; position: absolute; top: .2rem; left: .2rem; width: 1.35rem; height: 1.35rem; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
@@ -345,7 +373,7 @@
       --net: #0E7A5C; --net-ink: #0E7A5C; --tax: #7D4A73; --social: #4C6A8C; --bonus: #E0A12B; --bonus-ink: #8A5A00; --pin-ink: #fff; color-scheme: light;
     }
     .page { padding: 0; max-width: none; }
-    .top-actions, .sticky-bar, .settings, .tip, .readout, .curve .hover, .curve .hint, .noscript, .pin, .msg { display: none !important; }
+    .top-actions, .sticky-bar, .settings, .tip, .readout, .curve .hover, .curve .hint, .noscript, .pin, .msg, .prefs { display: none !important; }
     .print-only { display: block; margin: 0 0 1rem; font-size: .875rem; }
     .layout { display: block; margin-top: 1rem; }
     .layout > *, .results > *, .details > * { margin-bottom: 1rem; break-inside: avoid; }
@@ -373,9 +401,34 @@
         <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6.5 9.5a3 3 0 0 0 4.2 0l2.1-2.1a3 3 0 0 0-4.2-4.2L7.5 4.3"/><path d="M9.5 6.5a3 3 0 0 0-4.2 0L3.2 8.6a3 3 0 0 0 4.2 4.2l1.1-1.1"/></svg>
         <span id="copyLinkText" data-i18n="copyLink"></span>
       </button>
-      <div class="segmented lang" role="radiogroup" aria-label="Language / Sprache">
-        <label><input type="radio" name="lang" value="en" lang="en" aria-label="English"><span>EN</span></label>
-        <label><input type="radio" name="lang" value="de" lang="de" aria-label="Deutsch"><span>DE</span></label>
+      <button type="button" class="btn" id="prefsBtn" popovertarget="prefs" aria-expanded="false">
+        <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h8M12 4h2M2 12h3M7 12h7"/><circle cx="11" cy="4" r="1.6"/><circle cx="5" cy="12" r="1.6"/></svg>
+        <span id="prefsLabel" data-i18n="prefs"></span>
+      </button>
+      <div class="prefs" id="prefs" popover aria-labelledby="prefsLabel">
+        <fieldset class="field">
+          <legend data-i18n="language"></legend>
+          <div class="segmented" role="radiogroup" aria-label="Language / Sprache">
+            <label><input type="radio" name="lang" value="en" lang="en" aria-label="English"><span>English</span></label>
+            <label><input type="radio" name="lang" value="de" lang="de" aria-label="Deutsch"><span>Deutsch</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="field">
+          <legend data-i18n="mode"></legend>
+          <div class="segmented">
+            <label><input type="radio" name="mode" value="auto"><span data-i18n="modeAuto"></span></label>
+            <label><input type="radio" name="mode" value="light"><span data-i18n="modeLight"></span></label>
+            <label><input type="radio" name="mode" value="dark"><span data-i18n="modeDark"></span></label>
+          </div>
+        </fieldset>
+        <div class="field">
+          <label for="themeLight" data-i18n="themeLight"></label>
+          <select id="themeLight" name="themeLight"></select>
+        </div>
+        <div class="field last">
+          <label for="themeDark" data-i18n="themeDark"></label>
+          <select id="themeDark" name="themeDark"></select>
+        </div>
       </div>
     </div>
   </header>
@@ -405,7 +458,7 @@
               <td><span class="out net" id="novNet"></span></td>
             </tr>
             <tr data-extra>
-              <th scope="row"><span data-i18n="rowAvg"></span><small data-i18n="rowAvgSub"></small></th>
+              <th scope="row"><span class="long" data-i18n="rowAvg"></span><span class="short" data-i18n="rowAvgShort"></span><small data-i18n="rowAvgSub"></small></th>
               <td><div class="cellbox" data-cell="averageGross"></div></td>
               <td><div class="cellbox net" data-cell="averageNet"></div></td>
             </tr>
@@ -425,8 +478,13 @@
     </section>
 
     <div class="settings">
+      <details class="about card" id="about">
+        <summary>
+          <span class="about-title" data-i18n="settingsTitle"></span>
+          <span class="about-sum" id="aboutSummary"></span>
+          <svg class="chev" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+        </summary>
       <form id="settings" onsubmit="return false">
-        <h2 data-i18n="settingsTitle"></h2>
 
         <fieldset class="group">
           <legend data-i18n="groupPersonal"></legend>
@@ -510,29 +568,8 @@
             <p class="sub" data-i18n="benefitHint"></p>
           </div>
         </fieldset>
-
-        <fieldset class="group">
-          <legend data-i18n="groupLook"></legend>
-          <fieldset class="field">
-            <legend data-i18n="mode"></legend>
-            <div class="segmented">
-              <label><input type="radio" name="mode" value="auto"><span data-i18n="modeAuto"></span></label>
-              <label><input type="radio" name="mode" value="light"><span data-i18n="modeLight"></span></label>
-              <label><input type="radio" name="mode" value="dark"><span data-i18n="modeDark"></span></label>
-            </div>
-          </fieldset>
-          <div class="pair">
-            <div class="field">
-              <label for="themeLight" data-i18n="themeLight"></label>
-              <select id="themeLight" name="themeLight"></select>
-            </div>
-            <div class="field">
-              <label for="themeDark" data-i18n="themeDark"></label>
-              <select id="themeDark" name="themeDark"></select>
-            </div>
-          </div>
-        </fieldset>
       </form>
+      </details>
     </div>
 
     <div class="details">
@@ -589,7 +626,7 @@
       gross: 'Gross', net: 'Net',
       rowMonth: 'Every month',
       rowNov: 'November', rowNovSub: 'with 13th salary',
-      rowAvg: 'Average month', rowAvgSub: 'year ÷ 12', rowYear: 'Year',
+      rowAvg: 'Average month', rowAvgShort: 'Average', rowAvgSub: 'year ÷ 12', rowYear: 'Year',
       yearSub12: '12 salaries', yearSub13: '13 salaries', yearSubPlus: '{n} salaries plus summer bonus',
       cell_monthlyGross: 'monthly gross', cell_monthlyNet: 'monthly net',
       cell_averageGross: 'average monthly gross', cell_averageNet: 'average monthly net',
@@ -613,7 +650,8 @@
       settingsTitle: 'About you',
       thirteenth: '13th salary',
       groupPersonal: 'Personal', groupHealth: 'Health insurance', groupExtras: 'Extra pay', insuranceType: 'Type of health insurance',
-      groupLook: 'Appearance', mode: 'Colour mode', modeAuto: 'Auto', modeLight: 'Light', modeDark: 'Dark', themeLight: 'Light theme', themeDark: 'Dark theme',
+      prefs: 'Display', language: 'Language', mode: 'Colour mode', modeAuto: 'Auto', modeLight: 'Light', modeDark: 'Dark', themeLight: 'Light theme', themeDark: 'Dark theme',
+      aboutSep: ' · ', aboutSummer: 'summer bonus', aboutCard: 'benefit card',
       summer: 'Summer bonus / holiday pay', summerType: 'How the summer bonus is set',
       summerPercentMode: '% of monthly gross', summerFixedMode: 'Fixed amount',
       summerPercent: 'Percent', summerAmount: 'Amount', summerMonthLabel: 'Paid in',
@@ -665,7 +703,7 @@
       gross: 'Brutto', net: 'Netto',
       rowMonth: 'Jeden Monat',
       rowNov: 'November', rowNovSub: 'mit 13. Gehalt',
-      rowAvg: 'Durchschnittsmonat', rowAvgSub: 'Jahr ÷ 12', rowYear: 'Jahr',
+      rowAvg: 'Durchschnittsmonat', rowAvgShort: 'Ø Monat', rowAvgSub: 'Jahr ÷ 12', rowYear: 'Jahr',
       yearSub12: '12 Gehälter', yearSub13: '13 Gehälter', yearSubPlus: '{n} Gehälter plus Sommerbonus',
       cell_monthlyGross: 'Monatsbrutto', cell_monthlyNet: 'Monatsnetto',
       cell_averageGross: 'durchschnittliches Monatsbrutto', cell_averageNet: 'durchschnittliches Monatsnetto',
@@ -689,7 +727,8 @@
       settingsTitle: 'Ihre Angaben',
       thirteenth: '13. Gehalt',
       groupPersonal: 'Persönliches', groupHealth: 'Krankenversicherung', groupExtras: 'Sonderzahlungen', insuranceType: 'Art der Krankenversicherung',
-      groupLook: 'Darstellung', mode: 'Farbmodus', modeAuto: 'Auto', modeLight: 'Hell', modeDark: 'Dunkel', themeLight: 'Helles Design', themeDark: 'Dunkles Design',
+      prefs: 'Anzeige', language: 'Sprache', mode: 'Farbmodus', modeAuto: 'Auto', modeLight: 'Hell', modeDark: 'Dunkel', themeLight: 'Helles Design', themeDark: 'Dunkles Design',
+      aboutSep: ' · ', aboutSummer: 'Sommerbonus', aboutCard: 'Sachbezugskarte',
       summer: 'Sommerbonus / Urlaubsgeld', summerType: 'Wie der Sommerbonus festgelegt ist',
       summerPercentMode: '% vom Monatsbrutto', summerFixedMode: 'Fester Betrag',
       summerPercent: 'Prozent', summerAmount: 'Betrag', summerMonthLabel: 'Ausgezahlt im',
@@ -1094,6 +1133,10 @@
     $('summerHint').textContent = t('summerHint', { month: monthName(settings.summerMonth), amount: fmtEurC(r.summer.gross) });
 
     const state = T.STATES.find(([c]) => c === settings.state);
+    $('aboutSummary').textContent = [
+      `${t('taxClass')} ${settings.taxClass}`, lang === 'de' ? state[2] : state[1], t(settings.insurance),
+      settings.church ? t('church') : '', on ? t('thirteenth') : '', settings.summerBonus ? t('aboutSummer') : '', card ? t('aboutCard') : '',
+    ].filter(Boolean).join(t('aboutSep'));
     $('printSummary').textContent = t('summary', {
       cls: settings.taxClass, state: lang === 'de' ? state[2] : state[1], age: settings.age,
       children: settings.children, church: t(settings.church ? 'yes' : 'no'),
@@ -1150,27 +1193,35 @@
       for (const k of ['light', 'dark']) if (THEMES.some(([id]) => id === t[k])) look[k] = t[k];
     }
   } catch (e) { /* storage unavailable */ }
-  for (const sel of [form.themeLight, form.themeDark]) sel.innerHTML = THEMES.map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+  for (const sel of [$('themeLight'), $('themeDark')]) sel.innerHTML = THEMES.map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
 
   function applyTheme() {
     const dark = look.mode === 'dark' || (look.mode === 'auto' && systemDark.matches);
     document.documentElement.dataset.theme = (dark ? look.dark : look.light) + (dark ? '-dark' : '-light');
     document.querySelector('meta[name=theme-color]').content = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
-    form.querySelector(`[name=mode][value="${look.mode}"]`).checked = true;
-    form.themeLight.value = look.light;
-    form.themeDark.value = look.dark;
+    document.querySelector(`[name=mode][value="${look.mode}"]`).checked = true;
+    $('themeLight').value = look.light;
+    $('themeDark').value = look.dark;
     try { localStorage.setItem(THEME_STORE, JSON.stringify(look)); } catch (e) { /* ignore */ }
   }
   systemDark.addEventListener('change', applyTheme);
 
-  form.addEventListener('change', (e) => {
-    if (LOOK_FIELDS.includes(e.target.name)) {
-      look = { mode: form.querySelector('[name=mode]:checked').value, light: form.themeLight.value, dark: form.themeDark.value };
-      applyTheme();
-      return;
-    }
-    readForm(); writeForm(); render(null, { announce: true });
+  $('prefs').addEventListener('change', (e) => {
+    if (!LOOK_FIELDS.includes(e.target.name)) return;
+    look = { mode: document.querySelector('[name=mode]:checked').value, light: $('themeLight').value, dark: $('themeDark').value };
+    applyTheme();
   });
+  // The popover opens under its button.
+  $('prefs').addEventListener('toggle', (e) => {
+    const open = e.newState === 'open';
+    $('prefsBtn').setAttribute('aria-expanded', String(open));
+    if (!open) return;
+    const r = $('prefsBtn').getBoundingClientRect(), w = $('prefs').offsetWidth;
+    $('prefs').style.top = `${r.bottom + 8}px`;
+    $('prefs').style.left = `${Math.min(Math.max(16, r.left), window.innerWidth - w - 16)}px`;
+  });
+
+  form.addEventListener('change', () => { readForm(); writeForm(); render(null, { announce: true }); });
   form.addEventListener('input', (e) => { if (!e.target.classList.contains('text')) return; readForm(); render(null); });
   document.querySelectorAll('[name=lang]').forEach((radio) => radio.addEventListener('change', () => {
     lang = radio.value;
@@ -1192,6 +1243,8 @@
   let assumptionsWereOpen = false;
   window.addEventListener('beforeprint', () => { assumptionsWereOpen = $('assumptions').open; $('assumptions').open = true; });
   window.addEventListener('afterprint', () => { $('assumptions').open = assumptionsWereOpen; });
+  // "About you" starts open where it has its own column, collapsed on small screens.
+  $('about').open = window.matchMedia('(min-width: 900px)').matches;
 
   // On phones, a compact gross/net bar follows the user while the figures are scrolled away.
   new IntersectionObserver(([entry]) => {
