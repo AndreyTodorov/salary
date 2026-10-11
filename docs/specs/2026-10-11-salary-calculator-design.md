@@ -190,3 +190,28 @@ Approved after the independent review. Supersedes the sections above where they 
   - **Health insurance:** public/private, then Zusatzbeitrag or premium
   - **Extra pay:** 13th salary, summer bonus, benefit card
 - The breakdown table's label column stays sticky when the numbers scroll sideways on narrow screens.
+
+---
+
+## Revision 4 (2026-10-11): result-first layout, share link, audit fixes
+
+Based on three independent reviews (calculation audit against the official BMF pseudocode and test interface, UI/UX review with screenshots, front-end code review).
+
+### Calculation
+
+- The payroll tax port was verified against the BMF test interface in 92 scenarios with no mismatch; every constant in `Y` was confirmed against official 2026 sources. No changes to the tax maths.
+- **Age 64+:** note `age64` when age ≥ 64. The Altersentlastungsbetrag (§24a EStG) and the Aktivrente (§3 Nr. 21 EStG) are not modelled.
+- **Solver:** the back-scan below the bisection result adapts to the one-off payments. It steps 1 € at a time while the value stays within the largest possible Soli cliff (5.5 % of the tax on the 13th salary and summer bonus) of the target, then refines to the cent. Replaces the fixed 80 € cent-by-cent scan (8,000 calls per solve).
+- **JAEG and midijob checks** use the contributory yearly pay, so a taxable benefit card (above 50 €) counts.
+- **PKV subsidy:** still capped on the combined premium; the assumptions say so (the law caps health and care separately).
+- **Share link:** `encodeState` / `decodeState` map `{ settings, anchor, lang }` to URL query parameters (only non-default settings). The page keeps its state in the URL hash and offers "Copy link". `restore` validates whatever comes from the link.
+
+### UI
+
+- Masthead instead of a display-size title; one-line intro; BMF provenance in the footer.
+- **Hero card:** monthly gross as an obvious input field, monthly net as the single largest figure, a chip with the marginal keep ("you keep X ct of every extra €").
+- **Tiles** for average month, November (13th), summer month and year, each stacking gross over net. Editable values look like fields; the pinned one carries a "Pinned" badge. The hint sentence is gone.
+- **Share bar:** stacked yearly net / taxes / contributions with percentages, above the breakdown. Zero rows are hidden in the table.
+- **Settings** order: tax class, state, church tax, children, age; health insurance; extra pay. Rows at least 44 px tall. On desktop the column scrolls inside the viewport. On phones a compact sticky gross/net bar appears when the hero is scrolled out of view.
+- **Curve:** "What a raise brings"; on narrow screens the readout is a fixed line above the chart instead of a floating tooltip; a second tap within 24 px applies the value; cap labels never overflow.
+- **Fixes:** November/summer figures are plain spans (no implicit live regions); settings changes are announced; cells keep a visible focus ring; invalid or clamped entries show a message; the class 2 reason is shown inline; Enter keeps focus; the change flash is visible; reduced motion skips it; print keeps the swatch colours and restores the assumptions state; the live text uses English number formatting in English; copy unified between the languages ("Every month" / "Jeden Monat", "13th salary" / "13. Gehalt").
