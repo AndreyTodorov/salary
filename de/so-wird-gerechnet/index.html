@@ -21,7 +21,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Brutto und Netto 2026: So werden Steuern und Abgaben berechnet">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context":"https://schema.org","image":"https://salary.atdrv.eu/og-de.png","@graph":[{"@type":"Article","headline":"Brutto und Netto: so wird gerechnet","description":"Wie Lohnsteuer, Soli, Kirchensteuer und Sozialabgaben 2026 berechnet werden: Steuerklassen, Beitragssätze, Beitragsgrenzen, 13. Gehalt und Urlaubsgeld.","inLanguage":"de","url":"https://salary.atdrv.eu/de/so-wird-gerechnet/"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Brutto-Netto-Rechner 2026","item":"https://salary.atdrv.eu/de/"},{"@type":"ListItem","position":2,"name":"Brutto und Netto: so wird gerechnet","item":"https://salary.atdrv.eu/de/so-wird-gerechnet/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Brutto und Netto: so wird gerechnet","description":"Wie Lohnsteuer, Soli, Kirchensteuer und Sozialabgaben 2026 berechnet werden: Steuerklassen, Beitragssätze, Beitragsgrenzen, 13. Gehalt und Urlaubsgeld.","inLanguage":"de","url":"https://salary.atdrv.eu/de/so-wird-gerechnet/","dateModified":"2026-10-11","image":"https://salary.atdrv.eu/og-de.png"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Brutto-Netto-Rechner 2026","item":"https://salary.atdrv.eu/de/"},{"@type":"ListItem","position":2,"name":"Brutto und Netto: so wird gerechnet","item":"https://salary.atdrv.eu/de/so-wird-gerechnet/"}]}]}</script>
 <!-- /seo -->
 <meta name="theme-color" content="#F4F6F9">
 <script>
@@ -181,18 +181,18 @@
   .results { grid-area: results; display: grid; gap: 1.25rem; min-width: 0; }
   .details { grid-area: details; display: grid; gap: 1.25rem; min-width: 0; }
   .settings { grid-area: settings; min-width: 0; }
-  .about summary {
+  .about > summary {
     display: flex; align-items: center; gap: .5rem .75rem; flex-wrap: wrap; cursor: pointer; list-style: none;
     margin: -1.25rem; padding: 1.1rem 1.25rem; border-radius: var(--radius);
   }
-  .about summary::-webkit-details-marker { display: none; }
-  .about summary:focus-visible { outline: 2px solid var(--net); outline-offset: -4px; }
+  .about > summary::-webkit-details-marker { display: none; }
+  .about > summary:focus-visible { outline: 2px solid var(--net); outline-offset: -4px; }
   .about-title { font-size: 1.0625rem; font-weight: 650; }
   .about-sum { flex: 1 1 100%; color: var(--muted); font-size: .8125rem; order: 3; }
   .about[open] .about-sum { display: none; }
   .about .chev { width: 1.1rem; height: 1.1rem; margin-left: auto; color: var(--muted); transition: transform .2s; }
   .about[open] .chev { transform: rotate(180deg); }
-  .about[open] summary { margin-bottom: 0; }
+  .about[open] > summary { margin-bottom: 0; }
   .about form { padding-top: 1rem; }
   .short { display: none; }
   @media (min-width: 900px) {
@@ -241,7 +241,7 @@
   .figures td { padding: .4rem 0 .4rem .75rem; vertical-align: middle; }
   .figures tbody tr + tr > * { border-top: 1px solid var(--line); }
   .figures .row-bonus th[scope="row"] { color: var(--bonus-ink); }
-  .figures .cell, .figures .out { font-size: clamp(1.125rem, 6.6vw - .9rem, 1.75rem); }
+  .figures .cell, .figures .out { font-size: calc(clamp(1.125rem, 6.6vw - .9rem, 1.75rem) * var(--fit, 1)); }
   .figures .out { padding: .3rem .7rem .3rem 0; }
   .figures-foot { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin-top: 1rem; }
   .chip {
@@ -256,12 +256,12 @@
   }
   @media (max-width: 479px) {
     .card { padding: 1rem; }
-    .about summary { margin: -1rem; padding: .9rem 1rem; }
+    .about > summary { margin: -1rem; padding: .9rem 1rem; }
     .long { display: none; }
     .short { display: inline; }
     .figures th[scope="row"] { padding-right: .4rem; width: 26%; }
     .figures td { padding-left: .4rem; width: 37%; }
-    .figures .cell, .figures .out { font-size: clamp(.8125rem, 4.1vw, 1.125rem); }
+    .figures .cell, .figures .out { font-size: calc(clamp(.8125rem, 4.1vw, 1.125rem) * var(--fit, 1)); }
     .figures .cellbox { padding: .25rem .45rem; }
     .figures .unit { display: none; }
     .figures .out { padding-right: .45rem; }
@@ -314,10 +314,17 @@
   @media (max-width: 479px) {
     .table-wrap { --gutter: 1rem; }
   }
+  @media (max-width: 359px) {
+    .breakdown th:first-child { min-width: 9.5rem; }
+    .table-wrap::after { width: var(--gutter); }
+  }
   .notes { margin: 1rem 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .875rem; }
   .notes li { padding-left: .9rem; border-left: 3px solid var(--bonus); margin-bottom: .5rem; }
   .assumptions { margin-top: 1rem; font-size: .875rem; color: var(--muted); }
-  .assumptions summary { cursor: pointer; font-weight: 600; color: var(--ink); font-size: .9375rem; padding: .6rem 0; }
+  .assumptions summary { display: flex; align-items: center; gap: .4rem; width: fit-content; list-style: none; cursor: pointer; font-weight: 600; color: var(--ink); font-size: .9375rem; padding: .6rem 0; }
+  .assumptions summary::-webkit-details-marker { display: none; }
+  .assumptions summary::after { content: ""; width: 1rem; height: 1rem; background: var(--muted); -webkit-mask: var(--chevron) center / contain no-repeat; mask: var(--chevron) center / contain no-repeat; transition: transform .2s; }
+  .assumptions[open] summary::after { transform: rotate(180deg); }
   .assumptions ul { margin: .25rem 0 0; padding-left: 1.1rem; max-width: 70ch; }
   .assumptions li { margin-bottom: .4rem; }
 
@@ -329,7 +336,7 @@
   .curve svg { display: block; width: 100%; overflow: visible; cursor: crosshair; touch-action: pan-y; }
   .curve svg text { font-family: inherit; font-size: 12px; fill: var(--muted); }
   .curve .grid line { stroke: var(--line); }
-  .curve .grid .axis { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+  .curve .axis { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
   .curve .cap line { stroke: var(--social); stroke-dasharray: 2 4; }
   .curve .cap text { fill: var(--social); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
   .curve .line-month { fill: none; stroke: var(--net); stroke-width: 2.5; stroke-linejoin: round; }
@@ -347,14 +354,20 @@
   .curve svg .note text { fill: var(--muted); }
   .curve svg .note .delta { fill: var(--ink); font-size: 13px; font-weight: 650; }
   .curve figcaption { margin-top: .6rem; color: var(--muted); font-size: .9375rem; max-width: 62ch; }
-  .curve figcaption .hint { display: block; font-size: .8125rem; margin-top: .2rem; }
 
   /* Settings */
   .group { margin: 0 0 1.25rem; border: 0; padding: 0; min-width: 0; }
-  .group > legend {
-    width: 100%; padding: 0 0 .4rem; margin-bottom: .75rem; border-bottom: 1px solid var(--line);
+  .group > summary {
+    display: flex; align-items: center; justify-content: space-between; list-style: none; cursor: pointer;
+    padding: .5rem 0 .4rem; margin-bottom: .75rem; border-bottom: 1px solid var(--line);
     font-size: .8125rem; font-weight: 650; color: var(--muted);
   }
+  .group > summary::-webkit-details-marker { display: none; }
+  .group > summary::after { content: ""; width: 1rem; height: 1rem; background: var(--muted); -webkit-mask: var(--chevron) center / contain no-repeat; mask: var(--chevron) center / contain no-repeat; transition: transform .2s; }
+  .group[open] > summary::after { transform: rotate(180deg); }
+  .group:not([open]) > summary { margin-bottom: 0; }
+  .group > summary:hover { color: var(--ink); }
+  .group > summary:focus-visible { outline: 2px solid var(--net); outline-offset: 2px; border-radius: 4px; }
   .subfields { margin: -.25rem 0 1rem; padding-left: .75rem; border-left: 2px solid var(--bonus); }
   .field { margin: 0 0 1rem; border: 0; padding: 0; min-width: 0; }
   .field > label, .field > legend { display: block; font-weight: 600; font-size: .9375rem; margin-bottom: .4rem; padding: 0; }
@@ -364,6 +377,32 @@
     background: var(--field); border: var(--bw) solid var(--line); border-radius: var(--radius-sm);
   }
   select:hover, input.text:hover { border-color: var(--edit); }
+  /* Selects drop the browser's arrow for the same chevron as "About you", in the theme's muted colour. */
+  :root { --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E"); }
+  .select { position: relative; }
+  .select select { appearance: none; padding-right: 2.25rem; }
+  .select::after {
+    content: ""; position: absolute; right: .75rem; top: 50%; width: 1rem; height: 1rem; transform: translateY(-50%);
+    background: var(--muted); pointer-events: none;
+    -webkit-mask: var(--chevron) center / contain no-repeat;
+    mask: var(--chevron) center / contain no-repeat;
+  }
+  /* "?" buttons next to a label open a short explanation instead of a line of small print. */
+  .label-row { margin: 0 0 .4rem; font-weight: 600; font-size: .9375rem; }
+  h2.label-row { font-size: 1.0625rem; font-weight: 650; margin-bottom: 1rem; }
+  .tip-btn {
+    position: relative; display: inline-flex; align-items: center; justify-content: center; width: 1.25rem; height: 1.25rem;
+    margin-left: .35rem; padding: 0; vertical-align: .075rem; border: 1px solid var(--line); border-radius: 50%;
+    background: var(--field); color: var(--muted); font: inherit; font-size: .75rem; font-weight: 700; line-height: 1; cursor: pointer;
+  }
+  .tip-btn::after { content: ""; position: absolute; inset: -.6rem; }
+  .tip-btn:hover, .tip-btn[aria-expanded="true"] { color: var(--ink); border-color: var(--edit); }
+  .tip-btn:focus-visible { outline: 2px solid var(--net); outline-offset: 2px; }
+  .tip {
+    position: fixed; inset: auto; margin: 0; max-width: min(18rem, calc(100vw - 2rem)); padding: .6rem .75rem;
+    background: var(--ink); color: var(--paper); border: 0; border-radius: var(--radius-sm);
+    font-size: .8125rem; font-weight: 400; line-height: 1.45; box-shadow: 0 12px 32px -12px rgba(0, 0, 0, .35);
+  }
   select:focus-visible, input.text:focus-visible { outline: none; border-color: var(--net); box-shadow: 0 0 0 3px var(--ring); }
   .affix { position: relative; }
   .affix input { padding-right: 2.4rem; }
@@ -386,18 +425,19 @@
   .switch input:checked::after { transform: translateX(1.25rem); }
   .switch.bonus input:checked { background: var(--bonus); }
   @media (min-width: 600px) and (max-width: 899px) {
-    .settings form { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.5rem; align-items: start; }
-    .settings h2 { grid-column: 1 / -1; }
+    .settings form { columns: 2; column-gap: 1.5rem; }
+    .settings .group { break-inside: avoid; }
   }
 
   footer { margin-top: 3rem; color: var(--muted); font-size: .8125rem; max-width: 70ch; }
   footer p { margin: 0 0 .5rem; }
+  .link-btn { padding: 0; border: 0; background: none; font: inherit; color: var(--net-ink); text-decoration: underline; text-underline-offset: .15em; cursor: pointer; }
   a { color: var(--net-ink); text-underline-offset: .15em; }
   a.btn { color: var(--ink); text-decoration: none; }
 
   /* Explanation pages (how-it-works/, de/so-wird-gerechnet/), built by build.js. */
   .crumb { margin: 0 0 .35rem; font-size: .875rem; }
-  .prose { max-width: 46rem; margin-top: 1.5rem; padding: 1.5rem; line-height: 1.6; }
+  .prose { max-width: 46rem; margin-top: 1.5rem; padding: 1.5rem; line-height: 1.6; hyphens: auto; overflow-wrap: break-word; }
   .prose h2 { font-size: 1.125rem; line-height: 1.3; margin: 2rem 0 .5rem; }
   .prose h2:first-child { margin-top: 0; }
   .prose p, .prose ul, .prose ol { margin: 0 0 1rem; }
@@ -421,7 +461,7 @@
       --net: #0E7A5C; --net-ink: #0E7A5C; --tax: #7D4A73; --social: #4C6A8C; --bonus: #E0A12B; --bonus-ink: #8A5A00; --pin-ink: #fff; color-scheme: light;
     }
     .page { padding: 0; max-width: none; }
-    .top-actions, .sticky-bar, .settings, .curve .hover, .curve .hint, .noscript, .pin, .msg, .prefs { display: none !important; }
+    .top-actions, .sticky-bar, .settings, .curve .hover, .tip-btn, .link-btn, .noscript, .pin, .msg, .prefs { display: none !important; }
     .print-only { display: block; margin: 0 0 1rem; font-size: .875rem; }
     .layout { display: block; margin-top: 1rem; }
     .layout > *, .results > *, .details > * { margin-bottom: 1rem; break-inside: avoid; }
@@ -449,7 +489,7 @@
   </header>
   <main class="card prose">
 <h2>Kurz gesagt</h2>
-<p>Ihr Nettogehalt ist Ihr Bruttogehalt abzüglich vier Arten von Abzügen, die Ihr Arbeitgeber einbehält und für Sie abführt:</p>
+<p>Ihr Nettogehalt ist Ihr Bruttogehalt abzüglich vier Arten von Abgaben, die Ihr Arbeitgeber einbehält und für Sie abführt:</p>
 <ul>
   <li><strong>Lohnsteuer</strong>, die monatliche Vorauszahlung auf Ihre Einkommensteuer.</li>
   <li><strong>Solidaritätszuschlag</strong> („Soli“), den nur noch Besserverdienende zahlen.</li>
@@ -459,19 +499,19 @@
 <p>Ein Beispiel mit 5.000&nbsp;€ brutto im Monat, Steuerklasse 1, ohne Kinder, 30 Jahre, ohne Kirchensteuer und mit dem durchschnittlichen Zusatzbeitrag:</p>
 <div class="table-wrap"><table>
   <tbody>
-    <tr><td>Brutto</td><td class="num">5.000,00 €</td></tr>
-    <tr><td>Lohnsteuer</td><td class="num">− 782,41 €</td></tr>
-    <tr><td>Krankenversicherung</td><td class="num">− 437,50 €</td></tr>
-    <tr><td>Pflegeversicherung</td><td class="num">− 120,00 €</td></tr>
-    <tr><td>Rentenversicherung</td><td class="num">− 465,00 €</td></tr>
-    <tr><td>Arbeitslosenversicherung</td><td class="num">− 65,00 €</td></tr>
-    <tr class="total"><td>Netto</td><td class="num">3.130,09 €</td></tr>
+    <tr><td>Brutto</td><td class="num">5.000,00&nbsp;€</td></tr>
+    <tr><td>Lohnsteuer</td><td class="num">−&nbsp;782,41&nbsp;€</td></tr>
+    <tr><td>Krankenversicherung</td><td class="num">−&nbsp;437,50&nbsp;€</td></tr>
+    <tr><td>Pflegeversicherung</td><td class="num">−&nbsp;120,00&nbsp;€</td></tr>
+    <tr><td>Rentenversicherung</td><td class="num">−&nbsp;465,00&nbsp;€</td></tr>
+    <tr><td>Arbeitslosenversicherung</td><td class="num">−&nbsp;65,00&nbsp;€</td></tr>
+    <tr class="total"><td>Netto</td><td class="num">3.130,09&nbsp;€</td></tr>
   </tbody>
 </table></div>
-<p>Bis zu den Beitragsbemessungsgrenzen nehmen die Sozialabgaben einen festen Anteil von etwa 21&nbsp;% des Bruttos. Die Lohnsteuer ist progressiv: Je mehr Sie verdienen, desto größer ihr Anteil.</p>
+<p>Bis zu den Beitragsbemessungsgrenzen nehmen die Sozialabgaben einen festen Anteil von etwa 21 bis 22&nbsp;% des Bruttos. Die Lohnsteuer ist progressiv: Je mehr Sie verdienen, desto größer ihr Anteil.</p>
 
 <h2>Sozialabgaben 2026</h2>
-<p>Sie und Ihr Arbeitgeber zahlen jeden Beitrag ungefähr zur Hälfte. Gehalt oberhalb der monatlichen Beitragsbemessungsgrenze ist beitragsfrei. Deshalb steigt das Netto ab 5.812,50&nbsp;€ und noch einmal ab 8.450&nbsp;€ brutto schneller.</p>
+<p>Sie und Ihr Arbeitgeber zahlen jeden Beitrag ungefähr zur Hälfte. Gehaltsanteile oberhalb der monatlichen Beitragsbemessungsgrenze sind beitragsfrei. Deshalb steigt das Netto ab 5.812,50&nbsp;€ und noch einmal ab 8.450&nbsp;€ brutto schneller.</p>
 <div class="table-wrap"><table class="wide">
   <thead><tr><th>Versicherung</th><th>Beitragssatz</th><th>Ihr Anteil</th><th>Grenze pro Monat</th></tr></thead>
   <tbody>
@@ -483,9 +523,9 @@
 </table></div>
 <ul>
   <li><strong>Zusatzbeitrag:</strong> Jede gesetzliche Krankenkasse legt ihren eigenen Zusatzbeitrag fest. Der Durchschnitt 2026 liegt bei 2,9&nbsp;%, Ihr Anteil an der Krankenversicherung also meist bei 8,75&nbsp;%. Den genauen Satz Ihrer Kasse finden Sie auf deren Website und auf Ihrer Gehaltsabrechnung.</li>
-  <li><strong>Pflegeversicherung und Kinder:</strong> Kinderlose zahlen ab 23 Jahren einen Zuschlag von 0,6 Prozentpunkten. Eltern mit zwei bis fünf Kindern unter 25 zahlen ab dem zweiten Kind je Kind 0,25 Punkte weniger.</li>
+  <li><strong>Pflegeversicherung und Kinder:</strong> Wer nie Kinder hatte, zahlt ab dem Monat nach dem 23. Geburtstag einen Zuschlag von 0,6 Prozentpunkten. Eltern zahlen ihn nicht, egal wie alt ihre Kinder sind (für Stief- und Adoptiveltern gelten Bedingungen). Vor 1940 Geborene sind ebenfalls befreit. Eltern mit zwei bis fünf Kindern unter 25 zahlen ab dem zweiten Kind je Kind 0,25 Punkte weniger.</li>
   <li><strong>Sachsen</strong> teilt die Pflegeversicherung anders auf: Arbeitnehmer zahlen 2,3&nbsp;% (kinderlos 2,9&nbsp;%), Arbeitgeber entsprechend weniger.</li>
-  <li><strong>Private Krankenversicherung:</strong> Sie zahlen den Beitrag Ihres Versicherers selbst, Ihr Arbeitgeber übernimmt steuerfrei die Hälfte, 2026 höchstens 508,59&nbsp;€ für die Kranken- und 104,63&nbsp;€ für die Pflegeversicherung im Monat.</li>
+  <li><strong>Private Krankenversicherung:</strong> Sie zahlen den Beitrag Ihres Versicherers selbst, Ihr Arbeitgeber übernimmt steuerfrei die Hälfte, 2026 höchstens 508,59&nbsp;€ für die Kranken- und 104,63&nbsp;€ für die Pflegeversicherung im Monat (in Sachsen 75,56&nbsp;€ für die Pflegeversicherung).</li>
 </ul>
 
 <h2>So wird die Lohnsteuer berechnet</h2>
@@ -513,24 +553,24 @@
 <div class="table-wrap"><table>
   <thead><tr><th>Klasse</th><th>Für wen</th></tr></thead>
   <tbody>
-    <tr><td>1</td><td>Ledige, Geschiedene, Verwitwete und Verheiratete, deren Partner im Ausland lebt.</td></tr>
-    <tr><td>2</td><td>Alleinerziehende, die mit ihrem Kind zusammenleben. Mit Entlastungsbetrag von 4.260&nbsp;€.</td></tr>
+    <tr><td>1</td><td>Ledige, Geschiedene, Verwitwete und Verheiratete, die dauernd getrennt leben oder deren Partner nicht in Deutschland lebt (mit Partner in der EU oder im EWR ist Klasse 3 unter Umständen trotzdem möglich).</td></tr>
+    <tr><td>2</td><td>Alleinerziehende, die mit ihrem Kind und ohne weiteren Erwachsenen zusammenleben. Mit Entlastungsbetrag von 4.260&nbsp;€; für jedes weitere Kind trägt das Finanzamt auf Antrag 240&nbsp;€ ein, das berücksichtigt der Rechner nicht.</td></tr>
     <tr><td>3</td><td>Verheiratete, die deutlich mehr verdienen als der Partner in Klasse 5. Der Tarif wird auf das halbe Einkommen angewendet und verdoppelt (Splitting), der Lohnsteuerabzug ist niedrig.</td></tr>
     <tr><td>4</td><td>Verheiratete mit ähnlichem Einkommen. Abzug wie in Klasse 1.</td></tr>
     <tr><td>5</td><td>Verheiratete, die deutlich weniger verdienen als der Partner in Klasse 3. Ohne Grundfreibetrag, der Abzug ist hoch.</td></tr>
-    <tr><td>6</td><td>Zweit- und weitere Jobs. Ohne Freibeträge.</td></tr>
+    <tr><td>6</td><td>Zweit- und weitere Jobs. Ohne Grundfreibetrag, Arbeitnehmer- und Sonderausgaben-Pauschbetrag.</td></tr>
   </tbody>
 </table></div>
-<p>Bei Ehepaaren bestimmt die Steuerklasse nur, wie viel monatlich einbehalten wird. Die tatsächliche Steuer ergibt sich aus der gemeinsamen Steuererklärung, 3/5 und 4/4 führen also zur selben Jahressteuer.</p>
+<p>Bei Ehepaaren bestimmt die Steuerklasse nur, wie viel monatlich einbehalten wird. Die tatsächliche Steuer ergibt sich aus der gemeinsamen Steuererklärung, 3/5 und 4/4 führen also zur selben Jahressteuer. Bei 3/5 ist die Steuererklärung Pflicht.</p>
 
 <h2>Solidaritätszuschlag und Kirchensteuer</h2>
-<p>Der <strong>Soli</strong> beträgt 5,5&nbsp;% der Lohnsteuer, aber erst, wenn Ihre Lohnsteuer im Jahr 20.350&nbsp;€ übersteigt (40.700&nbsp;€ in Klasse 3). Oberhalb dieser Freigrenze steigt er schrittweise an. In Klasse 1 fällt bis etwa 7.700&nbsp;€ brutto im Monat kein Soli an, die vollen 5,5&nbsp;% ab etwa 11.200&nbsp;€.</p>
+<p>Der <strong>Soli</strong> beträgt 5,5&nbsp;% der Lohnsteuer, aber erst, wenn Ihre Lohnsteuer im Jahr 20.350&nbsp;€ übersteigt (40.700&nbsp;€ in Klasse 3). Oberhalb dieser Freigrenze steigt er gleitend an. In Klasse 1 fällt bis etwa 7.700&nbsp;€ brutto im Monat kein Soli an, die vollen 5,5&nbsp;% ab etwa 11.200&nbsp;€.</p>
 <p>Die <strong>Kirchensteuer</strong> beträgt 9&nbsp;% der Lohnsteuer, in Baden-Württemberg und Bayern 8&nbsp;%. Sie zahlen sie nur als Mitglied einer Kirche, die sie erhebt.</p>
-<p><strong>Kinder</strong> senken nicht die Lohnsteuer selbst, denn Eltern erhalten dafür Kindergeld. Sie senken aber Soli und Kirchensteuer: Diese werden so berechnet, als wäre der Kinderfreibetrag von 9.756&nbsp;€ je Kind abgezogen. In den Klassen 1 und 2 zählt jedes Kind meist zur Hälfte, weil sich die Eltern den Freibetrag teilen.</p>
+<p><strong>Kinder</strong> senken nicht die Lohnsteuer selbst, denn Eltern erhalten dafür Kindergeld. Sie senken aber Soli und Kirchensteuer: Diese werden so berechnet, als wären die Freibeträge für Kinder von 9.756&nbsp;€ je Kind (Kinderfreibetrag und Freibetrag für Betreuung, Erziehung und Ausbildung) abgezogen. In den Klassen 1 und 2 zählt jedes Kind meist zur Hälfte, weil sich die Eltern den Freibetrag teilen.</p>
 
-<h2>13. Gehalt, Urlaubsgeld und andere Einmalzahlungen</h2>
-<p>Ein 13. Gehalt, Urlaubsgeld oder Weihnachtsgeld wird als sonstiger Bezug besteuert. Ihr Arbeitgeber berechnet die Jahreslohnsteuer mit und ohne die Zahlung und behält die Differenz ein. Die Zahlung wird also mit Ihrem höchsten Grenzsteuersatz besteuert, und es bleibt weniger davon übrig als von einem normalen Monatsgehalt.</p>
-<p>Beim Soli gilt für Einmalzahlungen eine Besonderheit: Liegt Ihre Jahressteuer einschließlich der Zahlung über der Freigrenze, werden die vollen 5,5&nbsp;% auf die Steuer der Zahlung einbehalten, ohne schrittweisen Anstieg. Die Steuererklärung gleicht das genau aus.</p>
+<h2>13. Gehalt, Urlaubsgeld, Weihnachtsgeld und andere Einmalzahlungen</h2>
+<p>Ein 13. Gehalt, Urlaubsgeld oder Weihnachtsgeld wird als sonstiger Bezug besteuert. Ihr Arbeitgeber berechnet die Jahreslohnsteuer mit und ohne die Zahlung und behält die Differenz ein. Die Zahlung wird also mit dem Grenzsteuersatz am oberen Ende Ihres Einkommens besteuert, bei großen Beträgen über zwei Stufen hinweg, und es bleibt weniger davon übrig als von einem normalen Monatsgehalt.</p>
+<p>Beim Soli gilt für Einmalzahlungen eine Besonderheit: Liegt Ihre Jahressteuer einschließlich der Zahlung über der Freigrenze, werden die vollen 5,5&nbsp;% auf die Steuer der Zahlung einbehalten, ohne gleitenden Übergang. Die Steuererklärung gleicht das genau aus.</p>
 <p>Sozialabgaben fallen auf eine Einmalzahlung nur an, soweit im bisherigen Jahr noch Luft unter der Beitragsbemessungsgrenze ist (§ 23a SGB IV). Liegt Ihr Monatsgehalt schon über einer Grenze, ist die Zahlung in diesem Zweig beitragsfrei.</p>
 
 <h2>Sachbezugskarten</h2>
@@ -541,17 +581,29 @@
   <li>Der Zusatzbeitrag Ihrer Krankenkasse liegt über oder unter dem Durchschnitt von 2,9&nbsp;%.</li>
   <li>Sie haben einen Freibetrag beim Finanzamt eingetragen, oder Sie und Ihr Partner nutzen das Faktorverfahren.</li>
   <li>Ihr Gehalt enthält eine Entgeltumwandlung für die betriebliche Altersvorsorge (bAV), vermögenswirksame Leistungen (VWL), einen Dienstwagen oder andere Leistungen.</li>
-  <li>Sie verdienen 2.000&nbsp;€ im Monat oder weniger, dann gelten die Midijob-Regeln.</li>
+  <li>Sie verdienen 2.000&nbsp;€ im Monat oder weniger: Ab 603,01&nbsp;€ senken die Midijob-Regeln Ihre Beiträge, bis 603&nbsp;€ gelten die Regeln für Minijobs.</li>
   <li>Abzüge nach dem Netto, etwa für die Kantine, verringern den Auszahlungsbetrag, nicht Ihr Netto.</li>
 </ul>
 <p>Die Lohnsteuer ist eine Vorauszahlung. Die tatsächliche Einkommensteuer ergibt sich aus der Steuererklärung, in der zum Beispiel Werbungskosten über 1.230&nbsp;€ zu einer Erstattung führen können.</p>
 
 <h2>Wie genau ist der Rechner?</h2>
 <p>Lohnsteuer, Soli und Kirchensteuer folgen dem offiziellen Programmablaufplan 2026 des Bundesministeriums der Finanzen, den auch Lohnabrechnungsprogramme verwenden, und sind gegen den Rechner des Ministeriums getestet. Alles wird in Ihrem Browser berechnet, Ihre Eingaben verlassen die Seite nicht.</p>
+<p>Diese Seite erklärt die allgemeinen Regeln. Sie ist keine Steuer- oder Rechtsberatung, alle Angaben sind ohne Gewähr.</p>
+
+<h2>Quellen</h2>
+<ul class="sources">
+  <li>Lohnsteuer: <a href="https://www.bmf-steuerrechner.de/interface/pseudocodes.xhtml">Programmablaufplan 2026 des BMF</a> und der <a href="https://www.bmf-steuerrechner.de/">Lohnsteuerrechner des BMF</a></li>
+  <li>Einkommensteuergesetz (EStG): <a href="https://www.gesetze-im-internet.de/estg/__32a.html">§ 32a Tarif</a>, <a href="https://www.gesetze-im-internet.de/estg/__9a.html">§ 9a Arbeitnehmer-Pauschbetrag</a>, <a href="https://www.gesetze-im-internet.de/estg/__10c.html">§ 10c Sonderausgaben-Pauschbetrag</a>, <a href="https://www.gesetze-im-internet.de/estg/__24b.html">§ 24b Alleinerziehende</a>, <a href="https://www.gesetze-im-internet.de/estg/__39b.html">§ 39b sonstige Bezüge</a>, <a href="https://www.gesetze-im-internet.de/estg/__51a.html">§ 51a Kirchensteuer und Kinder</a>, <a href="https://www.gesetze-im-internet.de/estg/__8.html">§ 8 Sachbezüge</a>, <a href="https://www.gesetze-im-internet.de/estg/__3.html">§ 3 Nr. 62 Arbeitgeberzuschuss</a></li>
+  <li>Solidaritätszuschlag: <a href="https://www.gesetze-im-internet.de/solzg_1995/__3.html">§ 3 SolZG</a></li>
+  <li>Beitragsbemessungsgrenzen 2026: <a href="https://www.deutsche-rentenversicherung.de/DRV/DE/Ueber-uns-und-Presse/Presse/Meldungen/2025/250910-sv-rechengroessen-vo-2026.html">Deutsche Rentenversicherung</a>; Einmalzahlungen: <a href="https://www.gesetze-im-internet.de/sgb_4/__23a.html">§ 23a SGB IV</a>; Midijobs: <a href="https://www.gesetze-im-internet.de/sgb_4/__20.html">§ 20 SGB IV</a></li>
+  <li>Krankenversicherung: <a href="https://www.bundesanzeiger.de/pub/publication/oUJYVk8GYRXybnb9Y4h/content/oUJYVk8GYRXybnb9Y4h/BAnz%20AT%2010.11.2025%20B7.pdf">durchschnittlicher Zusatzbeitrag 2026</a> (<a href="https://www.gesetze-im-internet.de/sgb_5/__242a.html">§ 242a SGB V</a>), <a href="https://www.gesetze-im-internet.de/sgb_5/__257.html">§ 257 SGB V Arbeitgeberzuschuss</a></li>
+  <li>Pflegeversicherung: <a href="https://www.vdek.com/politik/was-aendert-sich/gesundheitswesen-2026/_jcr_content/par/publicationelement/file.res/Aenderungen_Gesundheitswesen_2026.pdf">Beitragssatz 3,6&nbsp;% im Jahr 2026 (vdek)</a>, <a href="https://www.gesetze-im-internet.de/sgb_11/__55.html">§ 55 SGB XI Zuschlag und Kinder</a>, <a href="https://www.gesetze-im-internet.de/sgb_11/__58.html">§ 58 SGB XI Sachsen</a></li>
+</ul>
   </main>
   <footer>
-    <p>Grundlage ist der offizielle Programmablaufplan 2026 des Bundesministeriums der Finanzen. Alles wird in Ihrem Browser berechnet; Ihre Eingaben verlassen diese Seite nicht.</p>
-    <p><a href="/de/">Brutto-Netto-Rechner 2026</a></p>
+    <p>Grundlage ist der offizielle Programmablaufplan 2026 des Bundesministeriums der Finanzen. Alles wird in Ihrem Browser berechnet; Ihre Eingaben verlassen diese Seite nicht. Keine Steuerberatung, alle Angaben ohne Gewähr.</p>
+    <p><a href="/de/">Brutto-Netto-Rechner 2026</a> · <a href="/de/so-wird-gerechnet/">So wird gerechnet</a> · <a href="/de/datenschutz/">Datenschutz</a></p>
+    <p class="updated" data-hash="453dcd8f21d7">Zuletzt aktualisiert: <time datetime="2026-10-11">11. Oktober 2026</time></p>
   </footer>
 </div>
 </body>

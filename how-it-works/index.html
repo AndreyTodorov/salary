@@ -21,7 +21,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Gross and Net Pay in Germany 2026, Explained">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context":"https://schema.org","image":"https://salary.atdrv.eu/og-en.png","@graph":[{"@type":"Article","headline":"Gross and net pay in Germany, explained","description":"How payroll tax, Soli, church tax and social contributions are calculated in Germany in 2026: tax classes, rates, contribution caps, 13th salary and bonuses.","inLanguage":"en","url":"https://salary.atdrv.eu/how-it-works/"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"German gross-net calculator 2026","item":"https://salary.atdrv.eu/"},{"@type":"ListItem","position":2,"name":"Gross and net pay in Germany, explained","item":"https://salary.atdrv.eu/how-it-works/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Gross and net pay in Germany, explained","description":"How payroll tax, Soli, church tax and social contributions are calculated in Germany in 2026: tax classes, rates, contribution caps, 13th salary and bonuses.","inLanguage":"en","url":"https://salary.atdrv.eu/how-it-works/","dateModified":"2026-10-11","image":"https://salary.atdrv.eu/og-en.png"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"German gross-net calculator 2026","item":"https://salary.atdrv.eu/"},{"@type":"ListItem","position":2,"name":"Gross and net pay in Germany, explained","item":"https://salary.atdrv.eu/how-it-works/"}]}]}</script>
 <!-- /seo -->
 <meta name="theme-color" content="#F4F6F9">
 <script>
@@ -181,18 +181,18 @@
   .results { grid-area: results; display: grid; gap: 1.25rem; min-width: 0; }
   .details { grid-area: details; display: grid; gap: 1.25rem; min-width: 0; }
   .settings { grid-area: settings; min-width: 0; }
-  .about summary {
+  .about > summary {
     display: flex; align-items: center; gap: .5rem .75rem; flex-wrap: wrap; cursor: pointer; list-style: none;
     margin: -1.25rem; padding: 1.1rem 1.25rem; border-radius: var(--radius);
   }
-  .about summary::-webkit-details-marker { display: none; }
-  .about summary:focus-visible { outline: 2px solid var(--net); outline-offset: -4px; }
+  .about > summary::-webkit-details-marker { display: none; }
+  .about > summary:focus-visible { outline: 2px solid var(--net); outline-offset: -4px; }
   .about-title { font-size: 1.0625rem; font-weight: 650; }
   .about-sum { flex: 1 1 100%; color: var(--muted); font-size: .8125rem; order: 3; }
   .about[open] .about-sum { display: none; }
   .about .chev { width: 1.1rem; height: 1.1rem; margin-left: auto; color: var(--muted); transition: transform .2s; }
   .about[open] .chev { transform: rotate(180deg); }
-  .about[open] summary { margin-bottom: 0; }
+  .about[open] > summary { margin-bottom: 0; }
   .about form { padding-top: 1rem; }
   .short { display: none; }
   @media (min-width: 900px) {
@@ -241,7 +241,7 @@
   .figures td { padding: .4rem 0 .4rem .75rem; vertical-align: middle; }
   .figures tbody tr + tr > * { border-top: 1px solid var(--line); }
   .figures .row-bonus th[scope="row"] { color: var(--bonus-ink); }
-  .figures .cell, .figures .out { font-size: clamp(1.125rem, 6.6vw - .9rem, 1.75rem); }
+  .figures .cell, .figures .out { font-size: calc(clamp(1.125rem, 6.6vw - .9rem, 1.75rem) * var(--fit, 1)); }
   .figures .out { padding: .3rem .7rem .3rem 0; }
   .figures-foot { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin-top: 1rem; }
   .chip {
@@ -256,12 +256,12 @@
   }
   @media (max-width: 479px) {
     .card { padding: 1rem; }
-    .about summary { margin: -1rem; padding: .9rem 1rem; }
+    .about > summary { margin: -1rem; padding: .9rem 1rem; }
     .long { display: none; }
     .short { display: inline; }
     .figures th[scope="row"] { padding-right: .4rem; width: 26%; }
     .figures td { padding-left: .4rem; width: 37%; }
-    .figures .cell, .figures .out { font-size: clamp(.8125rem, 4.1vw, 1.125rem); }
+    .figures .cell, .figures .out { font-size: calc(clamp(.8125rem, 4.1vw, 1.125rem) * var(--fit, 1)); }
     .figures .cellbox { padding: .25rem .45rem; }
     .figures .unit { display: none; }
     .figures .out { padding-right: .45rem; }
@@ -314,10 +314,17 @@
   @media (max-width: 479px) {
     .table-wrap { --gutter: 1rem; }
   }
+  @media (max-width: 359px) {
+    .breakdown th:first-child { min-width: 9.5rem; }
+    .table-wrap::after { width: var(--gutter); }
+  }
   .notes { margin: 1rem 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .875rem; }
   .notes li { padding-left: .9rem; border-left: 3px solid var(--bonus); margin-bottom: .5rem; }
   .assumptions { margin-top: 1rem; font-size: .875rem; color: var(--muted); }
-  .assumptions summary { cursor: pointer; font-weight: 600; color: var(--ink); font-size: .9375rem; padding: .6rem 0; }
+  .assumptions summary { display: flex; align-items: center; gap: .4rem; width: fit-content; list-style: none; cursor: pointer; font-weight: 600; color: var(--ink); font-size: .9375rem; padding: .6rem 0; }
+  .assumptions summary::-webkit-details-marker { display: none; }
+  .assumptions summary::after { content: ""; width: 1rem; height: 1rem; background: var(--muted); -webkit-mask: var(--chevron) center / contain no-repeat; mask: var(--chevron) center / contain no-repeat; transition: transform .2s; }
+  .assumptions[open] summary::after { transform: rotate(180deg); }
   .assumptions ul { margin: .25rem 0 0; padding-left: 1.1rem; max-width: 70ch; }
   .assumptions li { margin-bottom: .4rem; }
 
@@ -329,7 +336,7 @@
   .curve svg { display: block; width: 100%; overflow: visible; cursor: crosshair; touch-action: pan-y; }
   .curve svg text { font-family: inherit; font-size: 12px; fill: var(--muted); }
   .curve .grid line { stroke: var(--line); }
-  .curve .grid .axis { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+  .curve .axis { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
   .curve .cap line { stroke: var(--social); stroke-dasharray: 2 4; }
   .curve .cap text { fill: var(--social); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
   .curve .line-month { fill: none; stroke: var(--net); stroke-width: 2.5; stroke-linejoin: round; }
@@ -347,14 +354,20 @@
   .curve svg .note text { fill: var(--muted); }
   .curve svg .note .delta { fill: var(--ink); font-size: 13px; font-weight: 650; }
   .curve figcaption { margin-top: .6rem; color: var(--muted); font-size: .9375rem; max-width: 62ch; }
-  .curve figcaption .hint { display: block; font-size: .8125rem; margin-top: .2rem; }
 
   /* Settings */
   .group { margin: 0 0 1.25rem; border: 0; padding: 0; min-width: 0; }
-  .group > legend {
-    width: 100%; padding: 0 0 .4rem; margin-bottom: .75rem; border-bottom: 1px solid var(--line);
+  .group > summary {
+    display: flex; align-items: center; justify-content: space-between; list-style: none; cursor: pointer;
+    padding: .5rem 0 .4rem; margin-bottom: .75rem; border-bottom: 1px solid var(--line);
     font-size: .8125rem; font-weight: 650; color: var(--muted);
   }
+  .group > summary::-webkit-details-marker { display: none; }
+  .group > summary::after { content: ""; width: 1rem; height: 1rem; background: var(--muted); -webkit-mask: var(--chevron) center / contain no-repeat; mask: var(--chevron) center / contain no-repeat; transition: transform .2s; }
+  .group[open] > summary::after { transform: rotate(180deg); }
+  .group:not([open]) > summary { margin-bottom: 0; }
+  .group > summary:hover { color: var(--ink); }
+  .group > summary:focus-visible { outline: 2px solid var(--net); outline-offset: 2px; border-radius: 4px; }
   .subfields { margin: -.25rem 0 1rem; padding-left: .75rem; border-left: 2px solid var(--bonus); }
   .field { margin: 0 0 1rem; border: 0; padding: 0; min-width: 0; }
   .field > label, .field > legend { display: block; font-weight: 600; font-size: .9375rem; margin-bottom: .4rem; padding: 0; }
@@ -364,6 +377,32 @@
     background: var(--field); border: var(--bw) solid var(--line); border-radius: var(--radius-sm);
   }
   select:hover, input.text:hover { border-color: var(--edit); }
+  /* Selects drop the browser's arrow for the same chevron as "About you", in the theme's muted colour. */
+  :root { --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E"); }
+  .select { position: relative; }
+  .select select { appearance: none; padding-right: 2.25rem; }
+  .select::after {
+    content: ""; position: absolute; right: .75rem; top: 50%; width: 1rem; height: 1rem; transform: translateY(-50%);
+    background: var(--muted); pointer-events: none;
+    -webkit-mask: var(--chevron) center / contain no-repeat;
+    mask: var(--chevron) center / contain no-repeat;
+  }
+  /* "?" buttons next to a label open a short explanation instead of a line of small print. */
+  .label-row { margin: 0 0 .4rem; font-weight: 600; font-size: .9375rem; }
+  h2.label-row { font-size: 1.0625rem; font-weight: 650; margin-bottom: 1rem; }
+  .tip-btn {
+    position: relative; display: inline-flex; align-items: center; justify-content: center; width: 1.25rem; height: 1.25rem;
+    margin-left: .35rem; padding: 0; vertical-align: .075rem; border: 1px solid var(--line); border-radius: 50%;
+    background: var(--field); color: var(--muted); font: inherit; font-size: .75rem; font-weight: 700; line-height: 1; cursor: pointer;
+  }
+  .tip-btn::after { content: ""; position: absolute; inset: -.6rem; }
+  .tip-btn:hover, .tip-btn[aria-expanded="true"] { color: var(--ink); border-color: var(--edit); }
+  .tip-btn:focus-visible { outline: 2px solid var(--net); outline-offset: 2px; }
+  .tip {
+    position: fixed; inset: auto; margin: 0; max-width: min(18rem, calc(100vw - 2rem)); padding: .6rem .75rem;
+    background: var(--ink); color: var(--paper); border: 0; border-radius: var(--radius-sm);
+    font-size: .8125rem; font-weight: 400; line-height: 1.45; box-shadow: 0 12px 32px -12px rgba(0, 0, 0, .35);
+  }
   select:focus-visible, input.text:focus-visible { outline: none; border-color: var(--net); box-shadow: 0 0 0 3px var(--ring); }
   .affix { position: relative; }
   .affix input { padding-right: 2.4rem; }
@@ -386,18 +425,19 @@
   .switch input:checked::after { transform: translateX(1.25rem); }
   .switch.bonus input:checked { background: var(--bonus); }
   @media (min-width: 600px) and (max-width: 899px) {
-    .settings form { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.5rem; align-items: start; }
-    .settings h2 { grid-column: 1 / -1; }
+    .settings form { columns: 2; column-gap: 1.5rem; }
+    .settings .group { break-inside: avoid; }
   }
 
   footer { margin-top: 3rem; color: var(--muted); font-size: .8125rem; max-width: 70ch; }
   footer p { margin: 0 0 .5rem; }
+  .link-btn { padding: 0; border: 0; background: none; font: inherit; color: var(--net-ink); text-decoration: underline; text-underline-offset: .15em; cursor: pointer; }
   a { color: var(--net-ink); text-underline-offset: .15em; }
   a.btn { color: var(--ink); text-decoration: none; }
 
   /* Explanation pages (how-it-works/, de/so-wird-gerechnet/), built by build.js. */
   .crumb { margin: 0 0 .35rem; font-size: .875rem; }
-  .prose { max-width: 46rem; margin-top: 1.5rem; padding: 1.5rem; line-height: 1.6; }
+  .prose { max-width: 46rem; margin-top: 1.5rem; padding: 1.5rem; line-height: 1.6; hyphens: auto; overflow-wrap: break-word; }
   .prose h2 { font-size: 1.125rem; line-height: 1.3; margin: 2rem 0 .5rem; }
   .prose h2:first-child { margin-top: 0; }
   .prose p, .prose ul, .prose ol { margin: 0 0 1rem; }
@@ -421,7 +461,7 @@
       --net: #0E7A5C; --net-ink: #0E7A5C; --tax: #7D4A73; --social: #4C6A8C; --bonus: #E0A12B; --bonus-ink: #8A5A00; --pin-ink: #fff; color-scheme: light;
     }
     .page { padding: 0; max-width: none; }
-    .top-actions, .sticky-bar, .settings, .curve .hover, .curve .hint, .noscript, .pin, .msg, .prefs { display: none !important; }
+    .top-actions, .sticky-bar, .settings, .curve .hover, .tip-btn, .link-btn, .noscript, .pin, .msg, .prefs { display: none !important; }
     .print-only { display: block; margin: 0 0 1rem; font-size: .875rem; }
     .layout { display: block; margin-top: 1rem; }
     .layout > *, .results > *, .details > * { margin-bottom: 1rem; break-inside: avoid; }
@@ -460,15 +500,15 @@
 <div class="table-wrap"><table>
   <tbody>
     <tr><td>Gross</td><td class="num">€5,000.00</td></tr>
-    <tr><td>Income tax</td><td class="num">− €782.41</td></tr>
-    <tr><td>Health insurance</td><td class="num">− €437.50</td></tr>
-    <tr><td>Long-term care</td><td class="num">− €120.00</td></tr>
-    <tr><td>Pension</td><td class="num">− €465.00</td></tr>
-    <tr><td>Unemployment insurance</td><td class="num">− €65.00</td></tr>
+    <tr><td>Payroll tax</td><td class="num">−&nbsp;€782.41</td></tr>
+    <tr><td>Health insurance</td><td class="num">−&nbsp;€437.50</td></tr>
+    <tr><td>Long-term care</td><td class="num">−&nbsp;€120.00</td></tr>
+    <tr><td>Pension</td><td class="num">−&nbsp;€465.00</td></tr>
+    <tr><td>Unemployment insurance</td><td class="num">−&nbsp;€65.00</td></tr>
     <tr class="total"><td>Net</td><td class="num">€3,130.09</td></tr>
   </tbody>
 </table></div>
-<p>Up to the contribution caps, social contributions take a fixed share of about 21&nbsp;% of your gross pay. Payroll tax is progressive: the more you earn, the larger the share it takes.</p>
+<p>Up to the contribution caps, social contributions take a fixed share of about 21 to 22&nbsp;% of your gross pay. Payroll tax is progressive: the more you earn, the larger the share it takes.</p>
 
 <h2>Social contributions in 2026</h2>
 <p>You and your employer each pay about half of every contribution. Pay above the monthly cap is contribution-free, which is why net pay rises faster once your salary passes&nbsp;€5,812.50 and again at&nbsp;€8,450.</p>
@@ -483,9 +523,9 @@
 </table></div>
 <ul>
   <li><strong>Zusatzbeitrag:</strong> every public health insurer sets its own extra contribution. The 2026 average is 2.9&nbsp;%, so your share of health insurance is typically 8.75&nbsp;%. Your insurer’s actual rate is on its website and on your payslip.</li>
-  <li><strong>Care insurance and children:</strong> from age 23, employees without children pay a 0.6-point surcharge. Parents with two to five children under 25 pay 0.25 points less for each child from the second one.</li>
+  <li><strong>Care insurance and children:</strong> from the month after they turn 23, employees who have never had children pay a 0.6-point surcharge. Parents do not pay it, however old their children are (for step- and adoptive parents, conditions apply). People born before 1940 are also exempt. Parents with two to five children under 25 pay 0.25 points less for each child from the second one.</li>
   <li><strong>Saxony</strong> has a different split for care insurance: employees pay 2.3&nbsp;% (2.9&nbsp;% without children), employers less.</li>
-  <li><strong>Private health insurance:</strong> you pay your insurer’s premium yourself, and your employer pays half of it as a tax-free subsidy, up to&nbsp;€508.59 for health and&nbsp;€104.63 for care insurance a month in 2026.</li>
+  <li><strong>Private health insurance:</strong> you pay your insurer’s premium yourself, and your employer pays half of it as a tax-free subsidy, up to&nbsp;€508.59 for health and&nbsp;€104.63 for care insurance a month in 2026 (€75.56 for care insurance in Saxony).</li>
 </ul>
 
 <h2>How payroll tax is calculated</h2>
@@ -513,23 +553,23 @@
 <div class="table-wrap"><table>
   <thead><tr><th>Class</th><th>For whom</th></tr></thead>
   <tbody>
-    <tr><td>1</td><td>Single, divorced or widowed people, and married people whose spouse lives abroad.</td></tr>
-    <tr><td>2</td><td>Single parents who live with their child. Includes the&nbsp;€4,260 single-parent allowance.</td></tr>
+    <tr><td>1</td><td>Single, divorced or widowed people, and married people who live permanently apart or whose spouse lives outside Germany (with a spouse in the EU or EEA, class 3 can still be possible under certain conditions).</td></tr>
+    <tr><td>2</td><td>Single parents who live with their child and with no other adult. Includes the&nbsp;€4,260 single-parent allowance; for each further child the tax office adds&nbsp;€240 on request, which the calculator does not include.</td></tr>
     <tr><td>3</td><td>Married, earning clearly more than your spouse, who then takes class 5. The tariff is applied to half the income and doubled (splitting), so withholding is low.</td></tr>
     <tr><td>4</td><td>Married, both earning about the same. Withholding as in class 1.</td></tr>
     <tr><td>5</td><td>Married, earning clearly less than your spouse in class 3. No basic allowance, so withholding is high.</td></tr>
-    <tr><td>6</td><td>A second or further job. No allowances at all.</td></tr>
+    <tr><td>6</td><td>A second or further job. No basic allowance, employee allowance or special-expenses allowance.</td></tr>
   </tbody>
 </table></div>
-<p>For married couples, the tax class only changes how much is withheld each month. The actual tax is settled in the joint tax return, so 3/5 and 4/4 lead to the same tax for the year.</p>
+<p>For married couples, the tax class only changes how much is withheld each month. The actual tax is settled in the joint tax return, so 3/5 and 4/4 lead to the same tax for the year. With 3/5 the tax return is compulsory.</p>
 
 <h2>Solidarity surcharge and church tax</h2>
 <p>The <strong>Soli</strong> is 5.5&nbsp;% of your payroll tax, but only once your yearly payroll tax exceeds&nbsp;€20,350 (€40,700 in class 3). Above that threshold it is phased in gradually. In class 1, that means no Soli up to a gross salary of roughly&nbsp;€7,700 a month, and the full 5.5&nbsp;% from about&nbsp;€11,200.</p>
 <p><strong>Church tax</strong> is 9&nbsp;% of your payroll tax, or 8&nbsp;% in Baden-Württemberg and Bavaria. You only pay it as a member of a church that levies it.</p>
-<p><strong>Children</strong> do not reduce payroll tax itself, because parents receive child benefit (Kindergeld) instead. They do reduce Soli and church tax, which are calculated as if the child allowance of&nbsp;€9,756 per child had been deducted. In classes 1 and 2 each child usually counts half, because parents share the allowance.</p>
+<p><strong>Children</strong> do not reduce payroll tax itself, because parents receive child benefit (Kindergeld) instead. They do reduce Soli and church tax, which are calculated as if the child allowances of&nbsp;€9,756 per child (the child allowance plus the allowance for care, education and training) had been deducted. In classes 1 and 2 each child usually counts half, because parents share the allowance.</p>
 
-<h2>13th salary, holiday pay and other one-off payments</h2>
-<p>Bonuses such as a 13th salary or holiday pay (Urlaubsgeld) are taxed as one-off payments (sonstige Bezüge). Your employer calculates the tax on your yearly pay with the bonus and without it, and withholds the difference. The bonus is therefore taxed at your highest marginal rate, so less of it is left than of a normal monthly salary.</p>
+<h2>13th salary, holiday pay, Christmas bonus and other one-off payments</h2>
+<p>Bonuses such as a 13th salary, holiday pay (Urlaubsgeld) or a Christmas bonus (Weihnachtsgeld) are taxed as one-off payments (sonstige Bezüge). Your employer calculates the tax on your yearly pay with the bonus and without it, and withholds the difference. The bonus is therefore taxed at the marginal rate at the top of your income, or across two bands if it is large, so less of it is left than of a normal monthly salary.</p>
 <p>The Soli works differently on a bonus: if your yearly tax including the bonus passes the threshold, the full 5.5&nbsp;% is withheld on the tax on the bonus, with no phase-in. Your tax return settles the exact amount.</p>
 <p>Social contributions on a bonus are only due up to the room left under the contribution cap for the year so far (§ 23a SGB IV). If your monthly salary is already above a cap, the bonus is free of that contribution.</p>
 
@@ -541,17 +581,29 @@
   <li>Your health insurer’s Zusatzbeitrag is above or below the 2.9&nbsp;% average.</li>
   <li>You have an allowance registered with the tax office (Freibetrag), or you and your spouse use the factor method.</li>
   <li>Your pay includes a company pension (bAV) by salary conversion, capital-forming benefits (VWL), a company car or other benefits.</li>
-  <li>You earn&nbsp;€2,000 a month or less, where special midijob rules apply.</li>
+  <li>You earn&nbsp;€2,000 a month or less: from&nbsp;€603.01 midijob rules lower your contributions, and up to&nbsp;€603 a minijob has its own rules.</li>
   <li>Deductions after net pay, such as the canteen, reduce the amount paid out but not your net pay.</li>
 </ul>
 <p>Payroll tax is a prepayment. Your actual income tax is settled in your tax return, where work expenses above&nbsp;€1,230, for example, can lead to a refund.</p>
 
 <h2>How exact is the calculator?</h2>
 <p>Payroll tax, Soli and church tax follow the official 2026 payroll tax algorithm of the German Ministry of Finance (BMF Programmablaufplan), the same one payroll software uses, and are tested against the ministry’s own calculator. Everything runs in your browser, and nothing you enter leaves the page.</p>
+<p>This page explains the general rules. It is not tax or legal advice, and all figures are without guarantee.</p>
+
+<h2>Sources</h2>
+<ul class="sources">
+  <li>Payroll tax: <a href="https://www.bmf-steuerrechner.de/interface/pseudocodes.xhtml">BMF Programmablaufplan 2026</a> and the <a href="https://www.bmf-steuerrechner.de/">BMF payroll tax calculator</a></li>
+  <li>Income tax act (EStG): <a href="https://www.gesetze-im-internet.de/estg/__32a.html">§ 32a tariff</a>, <a href="https://www.gesetze-im-internet.de/estg/__9a.html">§ 9a employee allowance</a>, <a href="https://www.gesetze-im-internet.de/estg/__10c.html">§ 10c special expenses</a>, <a href="https://www.gesetze-im-internet.de/estg/__24b.html">§ 24b single parents</a>, <a href="https://www.gesetze-im-internet.de/estg/__39b.html">§ 39b one-off payments</a>, <a href="https://www.gesetze-im-internet.de/estg/__51a.html">§ 51a church tax and children</a>, <a href="https://www.gesetze-im-internet.de/estg/__8.html">§ 8 benefits in kind</a>, <a href="https://www.gesetze-im-internet.de/estg/__3.html">§ 3 no. 62 employer subsidy</a></li>
+  <li>Solidarity surcharge: <a href="https://www.gesetze-im-internet.de/solzg_1995/__3.html">§ 3 SolZG</a></li>
+  <li>Contribution caps 2026: <a href="https://www.deutsche-rentenversicherung.de/DRV/DE/Ueber-uns-und-Presse/Presse/Meldungen/2025/250910-sv-rechengroessen-vo-2026.html">Deutsche Rentenversicherung</a>; one-off payments: <a href="https://www.gesetze-im-internet.de/sgb_4/__23a.html">§ 23a SGB IV</a>; midijobs: <a href="https://www.gesetze-im-internet.de/sgb_4/__20.html">§ 20 SGB IV</a></li>
+  <li>Health insurance: <a href="https://www.bundesanzeiger.de/pub/publication/oUJYVk8GYRXybnb9Y4h/content/oUJYVk8GYRXybnb9Y4h/BAnz%20AT%2010.11.2025%20B7.pdf">average Zusatzbeitrag 2026</a> (<a href="https://www.gesetze-im-internet.de/sgb_5/__242a.html">§ 242a SGB V</a>), <a href="https://www.gesetze-im-internet.de/sgb_5/__257.html">§ 257 SGB V employer subsidy</a></li>
+  <li>Care insurance: <a href="https://www.vdek.com/politik/was-aendert-sich/gesundheitswesen-2026/_jcr_content/par/publicationelement/file.res/Aenderungen_Gesundheitswesen_2026.pdf">rate of 3.6&nbsp;% in 2026 (vdek)</a>, <a href="https://www.gesetze-im-internet.de/sgb_11/__55.html">§ 55 SGB XI surcharge and children</a>, <a href="https://www.gesetze-im-internet.de/sgb_11/__58.html">§ 58 SGB XI Saxony</a></li>
+</ul>
   </main>
   <footer>
-    <p>Based on the official 2026 payroll tax algorithm of the German Ministry of Finance (BMF). Everything is calculated in your browser; nothing you enter leaves this page.</p>
-    <p><a href="/">German gross-net calculator 2026</a></p>
+    <p>Based on the official 2026 payroll tax algorithm of the German Ministry of Finance (BMF). Everything is calculated in your browser; nothing you enter leaves this page. Not tax advice; all figures without guarantee.</p>
+    <p><a href="/">German gross-net calculator 2026</a> · <a href="/how-it-works/">How the calculation works</a> · <a href="/privacy/">Privacy</a></p>
+    <p class="updated" data-hash="1cc146acbc35">Last updated: <time datetime="2026-10-11">11 October 2026</time></p>
   </footer>
 </div>
 </body>

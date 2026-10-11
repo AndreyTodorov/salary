@@ -25,6 +25,12 @@ node build.js
 
 This writes the interface text and the search-engine metadata (title, description, canonical, hreflang, Open Graph, structured data) into `index.html` (English, the default page) and `de/index.html` (German). It also builds the explanation pages `how-it-works/` and `de/so-wird-gerechnet/` from the text in `_guide/`, with the calculator's styles and a worked example computed by `tax.js`, and writes `sitemap.xml`. The test suite fails while any of these is out of date.
 
+Each page's footer shows the date its content last changed, which also goes into the structured data and the sitemap's `lastmod`. The build keeps a page's date while its content is unchanged (a hash is stored next to the date) and uses today's date when it changes. For the calculator, changes to `tax.js` count; for the text pages, style-only changes do not. The pre-commit hook in `.githooks/` runs the build before every commit and adds the pages it rewrote, so a changed page carries the date of its commit. Enable it once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Test
 
 ```bash

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Rebuild the generated pages before every commit, so they never go out stale and a changed page's
+# "last updated" date is the day of the commit. Adds only the files the build rewrote.
+# Enable once per clone: git config core.hooksPath .githooks
+out=$(node build.js) || exit 1
+case "$out" in
+  Wrote\ *)
+    echo "pre-commit: $out"
+    echo "${out#Wrote }" | tr ',' '\n' | sed 's/^ *//' | xargs git add --
+    ;;
+esac

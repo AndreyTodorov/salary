@@ -114,6 +114,29 @@ test('care insurance: Saxony, children discount, under 23', () => {
   assert.equal(care({ children: 3 }), 6500);               // 1.8 - 0.5 = 1.3 %
   assert.equal(care({ age: 22 }), 9000);                   // 1.8 %
 });
+test('parents whose children are all 25 or older pay no childless surcharge (§ 55 SGB XI)', () => {
+  const r = (o) => T.calculate(S(o), 500000).regular;
+  assert.equal(r({ olderChildren: true }).care, 9000);                  // 1.8 %, no discount either
+  assert.equal(r({ olderChildren: true }).incomeTax, 79258);            // Vorsorgepauschale without the surcharge (PVZ 0)
+  assert.equal(r({ olderChildren: true, children: 2 }).care, r({ children: 2 }).care);
+  assert.deepEqual(r({ olderChildren: true, age: 22 }), r({ age: 22 }));            // no surcharge under 23 anyway
+});
+test('people born before 1940 pay no childless surcharge (§ 55(3) SGB XI)', () => {
+  const r = (o) => T.calculate(S(o), 500000).regular;
+  assert.equal(r({ age: 86 }).care, 12000);                                         // may be born in 1940
+  assert.equal(r({ age: 87 }).care, 9000);
+  assert.equal(r({ age: 87 }).incomeTax, 79258);
+});
+test('private insurance in tax class 6: the premium is paid through the main job', () => {
+  const r = T.calculate(S({ taxClass: 6, insurance: 'private', privatePremium: 60000 }), 300000).regular;
+  assert.equal(r.health, 0);
+  assert.equal(r.care, 0);
+});
+test('olderChildren round-trips through a share link and is left out when it does not apply', () => {
+  const state = (o) => ({ settings: S(o), anchor: null, lang: null });
+  assert.deepEqual(T.restore(T.decodeState(T.encodeState(state({ olderChildren: true })))), state({ olderChildren: true }));
+  assert.ok(!T.encodeState(state({ olderChildren: true, children: 1 })).includes('olderChildren'));
+});
 test('private insurance: employee pays premium minus subsidy', () => {
   const r = T.calculate(S({ insurance: 'private', privatePremium: 80000 }), 800000).regular;
   assert.equal(r.health, 40000);

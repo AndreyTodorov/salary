@@ -177,15 +177,21 @@
   }
 
   const DEFAULTS = {
-    taxClass: 1, state: 'BE', church: false, age: 30, children: 0,
+    taxClass: 1, state: 'BE', church: false, age: 30, children: 0, olderChildren: false,
     insurance: 'public', zusatzbeitrag: Y.ZB_AVERAGE, privatePremium: 60000, thirteenth: true, benefitCard: 0,
     summerBonus: false, summerMode: 'percent', summerPercent: 50, summerAmount: 150000, summerMonth: 6,
   };
 
   const roundRate = (cents, rate) => div(cents * rate + RATE / 2, RATE);
 
+  // § 55 SGB XI: the surcharge is for people who never had children; parents are exempt whatever their
+  // children's age. `children` counts children under 25 (they set the discount); `olderChildren` marks
+  // parents whose children are all 25 or older. People born before 1940 are exempt too: at 87 or older
+  // in the tax year they certainly are (at 86 it depends on the birthday).
+  const isChildless = (s) => s.children === 0 && !s.olderChildren && s.age >= 23 && s.age < Y.YEAR - 1939;
+
   function careRate(s) {
-    const childless = s.children === 0 && s.age >= 23;
+    const childless = isChildless(s);
     const discount = Math.max(0, Math.min(s.children, 5) - 1) * Y.PV_PER_CHILD;
     return (s.state === 'SN' ? Y.PV_SN : Y.PV) + (childless ? Y.PV_CHILDLESS : -discount);
   }
@@ -196,7 +202,7 @@
   }
 
   function papInput(s, pay, bonus) {
-    const childless = s.children === 0 && s.age >= 23;
+    const childless = isChildless(s);
     const pkv = s.insurance === 'private';
     const perChild = s.taxClass <= 2 ? 0.5 : s.taxClass <= 4 ? 1 : 0;
     return {
@@ -251,7 +257,8 @@
     const rB = pap({ ...papInput(s, pay, b), JRE4: pay * 12 + sb });
     const churchRate = s.state === 'BW' || s.state === 'BY' ? 8 : 9;
     const church = (bk) => div(bk * churchRate, 100);
-    const privateShare = s.insurance === 'private' ? s.privatePremium - pkvSubsidy(s) : 0;
+    // A private premium is paid, and subsidised, through the main job, not through a second one in class 6.
+    const privateShare = s.insurance === 'private' && s.taxClass !== 6 ? s.privatePremium - pkvSubsidy(s) : 0;
 
     const regular = breakdown(gross, rS.LSTLZZ, rS.SOLZLZZ, church(rS.BK),
       contributions(s, Math.min(pay, Y.BBG_KV_MONTH), Math.min(pay, Y.BBG_RV_MONTH), privateShare), card);
@@ -359,6 +366,7 @@
       church: (v) => typeof v === 'boolean',
       age: (v) => Number.isInteger(v) && v >= 15 && v <= 99,
       children: (v) => Number.isInteger(v) && v >= 0 && v <= 6,
+      olderChildren: (v) => typeof v === 'boolean',
       insurance: (v) => v === 'public' || v === 'private',
       zusatzbeitrag: (v) => Number.isFinite(v) && v >= 0 && v <= 10,
       privatePremium: (v) => Number.isInteger(v) && v >= 0 && v <= 1000000,
@@ -384,7 +392,10 @@
   function encodeState({ settings, anchor, lang }) {
     const q = new URLSearchParams();
     if (anchor) { q.set('f', anchor.field); q.set('c', String(anchor.cents)); }
-    for (const k of Object.keys(DEFAULTS)) if (settings[k] !== DEFAULTS[k]) q.set(k, String(settings[k]));
+    for (const k of Object.keys(DEFAULTS)) {
+      if (k === 'olderChildren' && settings.children > 0) continue; // only matters without children under 25
+      if (settings[k] !== DEFAULTS[k]) q.set(k, String(settings[k]));
+    }
     if (lang) q.set('lang', lang);
     return q.toString();
   }
