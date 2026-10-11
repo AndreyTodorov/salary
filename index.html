@@ -117,19 +117,25 @@
 
   /* Settings */
   .settings { grid-area: settings; }
-  .field { margin: 0 0 1.25rem; border: 0; padding: 0; }
+  .group { margin: 0 0 1.75rem; border: 0; padding: 0; min-width: 0; }
+  .group > legend {
+    width: 100%; padding: 0 0 .4rem; margin-bottom: 1rem; border-bottom: 1px solid var(--line);
+    font-size: .8125rem; font-weight: 650; color: var(--muted);
+  }
+  .subfields { margin: -.5rem 0 1.25rem; padding-left: .75rem; border-left: 2px solid var(--bonus); }
+  .field { margin: 0 0 1.25rem; border: 0; padding: 0; min-width: 0; }
   .field > label, .field > legend { display: block; font-weight: 600; font-size: .9375rem; margin-bottom: .4rem; padding: 0; }
-  .field .sub { color: var(--muted); font-size: .8125rem; margin: .35rem 0 0; }
+  .sub { color: var(--muted); font-size: .8125rem; margin: .35rem 0 0; }
   select, input.text {
     width: 100%; padding: .55rem .65rem; font: inherit; color: var(--ink);
     background: var(--surface); border: 1px solid var(--edit); border-radius: 6px;
   }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
   .segmented { display: flex; border: 1px solid var(--edit); border-radius: 6px; overflow: hidden; background: var(--surface); }
-  .segmented label { flex: 1; position: relative; text-align: center; cursor: pointer; }
+  .segmented label { flex: 1; display: flex; position: relative; text-align: center; cursor: pointer; }
   .segmented label + label { border-left: 1px solid var(--line); }
   .segmented input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-  .segmented span { display: block; padding: .5rem .25rem; font-weight: 600; font-size: .9375rem; }
+  .segmented span { flex: 1; display: flex; align-items: center; justify-content: center; padding: .5rem .25rem; font-weight: 600; font-size: .9375rem; }
   .segmented input:checked + span { background: var(--ink); color: var(--paper); }
   .segmented input:focus-visible + span { outline: 2px solid var(--net); outline-offset: -4px; }
   .segmented label.disabled { cursor: not-allowed; }
@@ -152,6 +158,8 @@
   .breakdown table { width: 100%; border-collapse: collapse; font-size: .9375rem; }
   .breakdown th, .breakdown td { padding: .5rem 0 .5rem .75rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
   .breakdown th:first-child { text-align: left; padding-left: 0; white-space: normal; }
+  /* Labels stay visible while the numbers scroll sideways on narrow screens. */
+  .breakdown tr > :first-child { position: sticky; left: 0; z-index: 1; background: var(--paper); padding-right: .6rem; hyphens: auto; overflow-wrap: anywhere; }
   .breakdown thead th { font-weight: 500; color: var(--muted); }
   .breakdown thead th.bonus-col { color: var(--bonus-ink); }
   .breakdown tbody th { font-weight: 450; }
@@ -223,12 +231,17 @@
             <td><input class="cell" data-field="monthlyGross" inputmode="decimal" autocomplete="off"></td>
             <td><input class="cell net" data-field="monthlyNet" inputmode="decimal" autocomplete="off"></td>
           </tr>
+          <tr class="row-bonus" data-summer>
+            <th scope="row"><span id="summerRowLabel"></span><small data-i18n="rowSummerSub"></small></th>
+            <td><output class="cell" id="sumGross"></output></td>
+            <td><output class="cell" id="sumNet"></output></td>
+          </tr>
           <tr class="row-bonus" data-bonus>
             <th scope="row"><span data-i18n="rowNov"></span><small data-i18n="rowNovSub"></small></th>
             <td><output class="cell" id="novGross"></output></td>
             <td><output class="cell" id="novNet"></output></td>
           </tr>
-          <tr data-bonus>
+          <tr data-extra>
             <th scope="row"><span data-i18n="rowAvg"></span><small data-i18n="rowAvgSub"></small></th>
             <td><input class="cell" data-field="averageGross" inputmode="decimal" autocomplete="off"></td>
             <td><input class="cell net" data-field="averageNet" inputmode="decimal" autocomplete="off"></td>
@@ -248,7 +261,7 @@
     <figure class="curve" id="curveBox">
       <div class="legend" aria-hidden="true">
         <span class="month" data-i18n="legendMonth"></span>
-        <span class="avg" data-bonus data-i18n="legendAvg"></span>
+        <span class="avg" data-extra data-i18n="legendAvg"></span>
       </div>
       <svg id="curve" role="img" height="240"></svg>
       <div class="tip" id="tip" hidden></div>
@@ -258,66 +271,95 @@
     <form class="settings" id="settings" onsubmit="return false">
       <h2 data-i18n="settingsTitle"></h2>
 
-      <label class="switch bonus field"><span data-i18n="thirteenth"></span><input type="checkbox" name="thirteenth"></label>
-
-      <fieldset class="field">
-        <legend data-i18n="taxClass"></legend>
-        <div class="segmented" id="taxClass"></div>
-        <p class="sub" id="taxClassHint"></p>
-      </fieldset>
-
-      <div class="field">
-        <label for="state" data-i18n="state"></label>
-        <select id="state" name="state"></select>
-      </div>
-
-      <div class="pair">
-        <div class="field">
-          <label for="age" data-i18n="age"></label>
-          <input class="text" id="age" name="age" type="number" min="15" max="99" inputmode="numeric">
+      <fieldset class="group">
+        <legend data-i18n="groupPersonal"></legend>
+        <div class="pair">
+          <div class="field">
+            <label for="age" data-i18n="age"></label>
+            <input class="text" id="age" name="age" type="number" min="15" max="99" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="children" data-i18n="children"></label>
+            <select id="children" name="children">
+              <option value="0"></option><option value="1">1</option><option value="2">2</option>
+              <option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6+</option>
+            </select>
+          </div>
         </div>
+        <fieldset class="field">
+          <legend data-i18n="taxClass"></legend>
+          <div class="segmented" id="taxClass"></div>
+          <p class="sub" id="taxClassHint"></p>
+        </fieldset>
+        <label class="switch field"><span data-i18n="church"></span><input type="checkbox" name="church"></label>
         <div class="field">
-          <label for="children" data-i18n="children"></label>
-          <select id="children" name="children">
-            <option value="0"></option><option value="1">1</option><option value="2">2</option>
-            <option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6+</option>
-          </select>
-        </div>
-      </div>
-
-      <label class="switch field"><span data-i18n="church"></span><input type="checkbox" name="church"></label>
-
-      <fieldset class="field">
-        <legend data-i18n="insurance"></legend>
-        <div class="segmented">
-          <label><input type="radio" name="insurance" value="public"><span data-i18n="public"></span></label>
-          <label><input type="radio" name="insurance" value="private"><span data-i18n="private"></span></label>
+          <label for="state" data-i18n="state"></label>
+          <select id="state" name="state"></select>
         </div>
       </fieldset>
 
-      <div class="field" id="publicFields">
-        <label for="zusatzbeitrag" data-i18n="zb"></label>
-        <input class="text" id="zusatzbeitrag" name="zusatzbeitrag" inputmode="decimal">
-        <p class="sub" data-i18n="zbHint"></p>
-      </div>
-      <div class="field" id="privateFields" hidden>
-        <label for="privatePremium" data-i18n="premium"></label>
-        <input class="text" id="privatePremium" name="privatePremium" inputmode="decimal">
-        <p class="sub" id="subsidyHint"></p>
-      </div>
+      <fieldset class="group">
+        <legend data-i18n="groupHealth"></legend>
+        <fieldset class="field">
+          <legend class="sr-only" data-i18n="insuranceType"></legend>
+          <div class="segmented">
+            <label><input type="radio" name="insurance" value="public"><span data-i18n="public"></span></label>
+            <label><input type="radio" name="insurance" value="private"><span data-i18n="private"></span></label>
+          </div>
+        </fieldset>
+        <div class="field" id="publicFields">
+          <label for="zusatzbeitrag" data-i18n="zb"></label>
+          <input class="text" id="zusatzbeitrag" name="zusatzbeitrag" inputmode="decimal">
+          <p class="sub" data-i18n="zbHint"></p>
+        </div>
+        <div class="field" id="privateFields" hidden>
+          <label for="privatePremium" data-i18n="premium"></label>
+          <input class="text" id="privatePremium" name="privatePremium" inputmode="decimal">
+          <p class="sub" id="subsidyHint"></p>
+        </div>
+      </fieldset>
 
-      <div class="field">
-        <label for="benefitCard" data-i18n="benefit"></label>
-        <input class="text" id="benefitCard" name="benefitCard" inputmode="decimal">
-        <p class="sub" data-i18n="benefitHint"></p>
-      </div>
+      <fieldset class="group">
+        <legend data-i18n="groupExtras"></legend>
+        <label class="switch bonus field"><span data-i18n="thirteenth"></span><input type="checkbox" name="thirteenth"></label>
+        <label class="switch bonus field"><span data-i18n="summer"></span><input type="checkbox" name="summerBonus"></label>
+        <div class="subfields" id="summerFields" hidden>
+          <fieldset class="field">
+            <legend class="sr-only" data-i18n="summerType"></legend>
+            <div class="segmented">
+              <label><input type="radio" name="summerMode" value="percent"><span data-i18n="summerPercentMode"></span></label>
+              <label><input type="radio" name="summerMode" value="fixed"><span data-i18n="summerFixedMode"></span></label>
+            </div>
+          </fieldset>
+          <div class="pair">
+            <div class="field" id="summerPercentField">
+              <label for="summerPercent" data-i18n="summerPercent"></label>
+              <input class="text" id="summerPercent" name="summerPercent" inputmode="numeric">
+            </div>
+            <div class="field" id="summerAmountField" hidden>
+              <label for="summerAmount" data-i18n="summerAmount"></label>
+              <input class="text" id="summerAmount" name="summerAmount" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label for="summerMonth" data-i18n="summerMonthLabel"></label>
+              <select id="summerMonth" name="summerMonth"></select>
+            </div>
+          </div>
+          <p class="sub" id="summerHint"></p>
+        </div>
+        <div class="field">
+          <label for="benefitCard" data-i18n="benefit"></label>
+          <input class="text" id="benefitCard" name="benefitCard" inputmode="decimal">
+          <p class="sub" data-i18n="benefitHint"></p>
+        </div>
+      </fieldset>
     </form>
 
     <section class="breakdown" aria-labelledby="breakdown-title">
       <h2 id="breakdown-title" data-i18n="breakdownTitle"></h2>
       <div class="table-scroll">
         <table>
-          <thead><tr><th scope="col"><span class="sr-only" data-i18n="item"></span></th><th scope="col" data-i18n="colMonth"></th><th scope="col" class="bonus-col" data-bonus data-i18n="colBonus"></th><th scope="col" data-i18n="colYear"></th></tr></thead>
+          <thead><tr><th scope="col"><span class="sr-only" data-i18n="item"></span></th><th scope="col" data-i18n="colMonth"></th><th scope="col" class="bonus-col" data-summer data-i18n="colSummer"></th><th scope="col" class="bonus-col" data-bonus data-i18n="colBonus"></th><th scope="col" data-i18n="colYear"></th></tr></thead>
           <tbody id="breakdownBody"></tbody>
         </table>
       </div>
@@ -356,14 +398,20 @@
       benefitLine: 'Plus a benefit card worth {month} a month ({yearly} a year), {status}.',
       benefitFree: 'tax-free', benefitTaxed: 'taxed as pay',
       live: 'Every month: {mg} € gross, {mn} € net. Year: {yg} € gross, {yn} € net.',
-      legendMonth: 'Every month', legendAvg: 'Average month incl. 13th salary',
+      legendMonth: 'Every month', legendAvg: 'Average month incl. bonuses',
       capKV: 'Health cap', capRV: 'Pension cap',
       curveAria: 'Chart of monthly net pay by monthly gross salary. Your salary: {gross} gross, {net} net.',
       curveCaption: 'At your salary you keep {keep} ct of every extra euro. A raise of 500 € gross adds about {raise} net a month.',
       curveHint: 'Click the curve to use that salary. On a touch screen, tap once to see the values and again to use them.',
       tipGross: 'Gross {v}', tipNet: 'Net {v}', tipAvg: 'Average month {v}', tipKeep: 'Keeps {keep} ct per extra €',
       settingsTitle: 'About you',
-      thirteenth: '13th salary in November',
+      thirteenth: 'Receives 13th salary',
+      groupPersonal: 'Personal', groupHealth: 'Health insurance', groupExtras: 'Extra pay', insuranceType: 'Type of health insurance',
+      summer: 'Summer bonus', summerType: 'How the summer bonus is set',
+      summerPercentMode: '% of monthly gross', summerFixedMode: 'Fixed amount',
+      summerPercent: 'Percent', summerAmount: 'Amount', summerMonthLabel: 'Paid in',
+      summerHint: 'Paid in {month}: {amount} gross.',
+      rowSummerSub: 'with summer bonus', colSummer: 'Summer bonus',
       taxClass: 'Tax class',
       class1: 'Single, or married with a spouse abroad.',
       class2: 'Single parent living with your child.',
@@ -392,11 +440,11 @@
       note_benefitTaxable: 'The benefit card is above {limit} a month, so the whole amount is taxed and subject to contributions.',
       assumptionsTitle: 'Assumptions',
       a1: 'Figures show the payroll tax your employer withholds under the official {year} algorithm (BMF Programmablaufplan). Your final tax after a tax return can differ, for example because of work expenses or Soli on the 13th salary.',
-      a2: 'The 13th salary equals one monthly gross salary and is paid in November.',
+      a2: 'The 13th salary equals one monthly gross salary and is paid in November. A summer bonus is paid in the month you choose (April to October), before the 13th salary.',
       a3: 'Children are under 25. In tax classes 1 and 2 each child counts as half a child allowance, because parents usually share it; in classes 3 and 4 as a full one. This only affects Soli and church tax.',
       a4: 'Private health insurance: the whole premium is treated as basic cover for tax purposes. The employer pays half, up to the {year} maximum.',
       a5: 'Social contributions use the {year} rates and caps. Mini- and midijobs, self-employment and the class 4 factor method are not covered.',
-      summary: 'Tax class {cls}, {state}, age {age}, children: {children}, church tax: {church}, health insurance: {insurance}, 13th salary: {thirteenth}, benefit card: {card}.',
+      summary: 'Tax class {cls}, {state}, age {age}, children: {children}, church tax: {church}, health insurance: {insurance}, 13th salary: {thirteenth}, summer bonus: {summer}, benefit card: {card}.',
       yes: 'yes', no: 'no',
       footer: 'Everything is calculated in your browser. Nothing you enter leaves this page.',
     },
@@ -415,14 +463,20 @@
       benefitLine: 'Dazu eine Sachbezugskarte über {month} im Monat ({yearly} im Jahr), {status}.',
       benefitFree: 'steuer- und abgabenfrei', benefitTaxed: 'als Arbeitslohn versteuert',
       live: 'Jeden Monat: {mg} € brutto, {mn} € netto. Jahr: {yg} € brutto, {yn} € netto.',
-      legendMonth: 'Jeden Monat', legendAvg: 'Durchschnittsmonat inkl. 13. Gehalt',
+      legendMonth: 'Jeden Monat', legendAvg: 'Durchschnittsmonat inkl. Sonderzahlungen',
       capKV: 'BBG KV', capRV: 'BBG RV',
       curveAria: 'Diagramm: Monatsnetto in Abhängigkeit vom Monatsbrutto. Ihr Gehalt: {gross} brutto, {net} netto.',
       curveCaption: 'Bei Ihrem Gehalt bleiben von jedem zusätzlichen Euro {keep} ct netto. 500 € mehr brutto bringen etwa {raise} netto im Monat.',
       curveHint: 'Klicken Sie auf die Kurve, um dieses Gehalt zu übernehmen. Auf Touchscreens zeigt der erste Tipp die Werte, der zweite übernimmt sie.',
       tipGross: 'Brutto {v}', tipNet: 'Netto {v}', tipAvg: 'Durchschnittsmonat {v}', tipKeep: '{keep} ct je zusätzlichem €',
       settingsTitle: 'Ihre Angaben',
-      thirteenth: '13. Gehalt im November',
+      thirteenth: 'Erhält ein 13. Gehalt',
+      groupPersonal: 'Persönliches', groupHealth: 'Krankenversicherung', groupExtras: 'Sonderzahlungen', insuranceType: 'Art der Krankenversicherung',
+      summer: 'Sommerbonus / Urlaubsgeld', summerType: 'Wie der Sommerbonus festgelegt ist',
+      summerPercentMode: '% vom Monatsbrutto', summerFixedMode: 'Fester Betrag',
+      summerPercent: 'Prozent', summerAmount: 'Betrag', summerMonthLabel: 'Ausgezahlt im',
+      summerHint: 'Auszahlung im {month}: {amount} brutto.',
+      rowSummerSub: 'mit Sommerbonus', colSummer: 'Sommerbonus',
       taxClass: 'Steuerklasse',
       class1: 'Ledig oder verheiratet mit Partner im Ausland.',
       class2: 'Alleinerziehend mit Kind im Haushalt.',
@@ -451,11 +505,11 @@
       note_benefitTaxable: 'Die Sachbezugskarte liegt über {limit} im Monat. Deshalb ist der gesamte Betrag steuer- und beitragspflichtig.',
       assumptionsTitle: 'Annahmen',
       a1: 'Angezeigt wird die Lohnsteuer, die Ihr Arbeitgeber nach dem offiziellen Programmablaufplan {year} des BMF einbehält. Die endgültige Steuer nach der Steuererklärung kann abweichen, etwa durch Werbungskosten oder den Solidaritätszuschlag auf das 13. Gehalt.',
-      a2: 'Das 13. Gehalt entspricht einem Monatsbrutto und wird im November ausgezahlt.',
+      a2: 'Das 13. Gehalt entspricht einem Monatsbrutto und wird im November ausgezahlt. Ein Sommerbonus wird im gewählten Monat (April bis Oktober) gezahlt, also vor dem 13. Gehalt.',
       a3: 'Kinder sind jünger als 25. In den Steuerklassen 1 und 2 zählt jedes Kind mit dem Zähler 0,5, weil sich die Eltern den Freibetrag meist teilen; in den Klassen 3 und 4 mit 1,0. Das wirkt sich nur auf Solidaritätszuschlag und Kirchensteuer aus.',
       a4: 'Private Krankenversicherung: Der gesamte Beitrag wird steuerlich als Basisabsicherung behandelt. Der Arbeitgeber zahlt die Hälfte, höchstens bis zum Höchstbetrag {year}.',
       a5: 'Sozialabgaben mit den Beitragssätzen und Beitragsbemessungsgrenzen {year}. Mini- und Midijobs, Selbstständige und das Faktorverfahren in Klasse 4 sind nicht abgedeckt.',
-      summary: 'Steuerklasse {cls}, {state}, Alter {age}, Kinder: {children}, Kirchensteuer: {church}, Krankenversicherung: {insurance}, 13. Gehalt: {thirteenth}, Sachbezugskarte: {card}.',
+      summary: 'Steuerklasse {cls}, {state}, Alter {age}, Kinder: {children}, Kirchensteuer: {church}, Krankenversicherung: {insurance}, 13. Gehalt: {thirteenth}, Sommerbonus: {summer}, Sachbezugskarte: {card}.',
       yes: 'ja', no: 'nein',
       footer: 'Alles wird in Ihrem Browser berechnet. Ihre Eingaben verlassen diese Seite nicht.',
     },
@@ -468,6 +522,7 @@
   const fmtEur = (c) => whole.format(Math.round(c / 100)) + ' €';
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const $ = (id) => document.getElementById(id);
+  const monthName = (m) => new Intl.DateTimeFormat(lang === 'de' ? 'de-DE' : 'en-GB', { month: 'long' }).format(new Date(2026, m - 1, 1));
 
   let lang = (navigator.language || 'en').toLowerCase().startsWith('de') ? 'de' : 'en';
   let settings = { ...T.DEFAULTS };
@@ -498,7 +553,7 @@
   $('taxClass').innerHTML = [1, 2, 3, 4, 5, 6].map((n) =>
     `<label><input type="radio" name="taxClass" value="${n}"><span>${n}</span></label>`).join('');
   $('breakdownBody').innerHTML = ROWS.map(([k, kind]) =>
-    `<tr class="${kind}" data-row="${k}"><th scope="row"></th><td data-col="regular"></td><td data-col="bonus" data-bonus></td><td data-col="year"></td></tr>`).join('');
+    `<tr class="${kind}" data-row="${k}"><th scope="row"></th><td data-col="regular"></td><td data-col="summer" data-summer></td><td data-col="bonus" data-bonus></td><td data-col="year"></td></tr>`).join('');
 
   function applyLang() {
     document.documentElement.lang = lang;
@@ -509,6 +564,8 @@
     form.state.innerHTML = T.STATES.map(([c, en, de]) => `<option value="${c}">${lang === 'de' ? de : en}</option>`).join('');
     form.state.value = settings.state;
     form.children.options[0].textContent = t('childrenNone');
+    form.summerMonth.innerHTML = [4, 5, 6, 7, 8, 9, 10].map((m) => `<option value="${m}">${monthName(m)}</option>`).join('');
+    form.summerMonth.value = String(settings.summerMonth);
     $('assumptionList').innerHTML = '';
     for (const k of ['a1', 'a2', 'a3', 'a4', 'a5']) {
       const li = document.createElement('li');
@@ -529,6 +586,11 @@
     form.zusatzbeitrag.value = String(settings.zusatzbeitrag).replace('.', ',');
     form.privatePremium.value = fmt(settings.privatePremium);
     form.benefitCard.value = fmt(settings.benefitCard);
+    form.summerBonus.checked = settings.summerBonus;
+    form.querySelector(`[name=summerMode][value="${settings.summerMode}"]`).checked = true;
+    form.summerPercent.value = String(settings.summerPercent);
+    form.summerAmount.value = fmt(settings.summerAmount);
+    form.summerMonth.value = String(settings.summerMonth);
   }
 
   function readForm() {
@@ -545,9 +607,15 @@
       zusatzbeitrag: Math.round(Math.min(10, Math.max(0, num(form.zusatzbeitrag.value, settings.zusatzbeitrag))) * 100) / 100,
       privatePremium: amount(form.privatePremium.value, settings.privatePremium, 1000000),
       benefitCard: amount(form.benefitCard.value, settings.benefitCard, 100000),
+      summerBonus: form.summerBonus.checked,
+      summerMode: form.querySelector('[name=summerMode]:checked').value,
+      summerPercent: Math.min(200, Math.max(0, Math.round(num(form.summerPercent.value, settings.summerPercent)))),
+      summerAmount: amount(form.summerAmount.value, settings.summerAmount, 10000000),
+      summerMonth: Number(form.summerMonth.value),
     };
-    // A pinned average-month value disappears with the 13th salary: keep the matching monthly figure.
-    if (settings.thirteenth && !next.thirteenth && anchor.field.startsWith('average') && lastResult) {
+    // A pinned average-month value disappears with the last extra payment: keep the matching monthly figure.
+    const extras = (x) => x.thirteenth || x.summerBonus;
+    if (extras(settings) && !extras(next) && anchor.field.startsWith('average') && lastResult) {
       const f = anchor.field.replace('average', 'monthly');
       anchor = { field: f, cents: T.read(lastResult, f) };
     }
@@ -582,7 +650,7 @@
   const keepAt = (g, net) => Math.round((T.calculate(settings, g + 10000).regular.net - net) / 100);
 
   function renderCurve() {
-    const r = lastResult, gross = lastGross, on = settings.thirteenth;
+    const r = lastResult, gross = lastGross, on = settings.thirteenth || settings.summerBonus;
     const W = Math.max(280, Math.round(svg.getBoundingClientRect().width) || 640);
     const H = W < 520 ? 200 : 240;
     const xMax = Math.max(800000, Math.ceil(gross * 2 / 100000) * 100000);
@@ -609,8 +677,10 @@
       s += `<text x="${X(g)}" y="${H - PB + 18}" text-anchor="${anchorPos}">${whole.format(g / 100)}</text>`;
     }
     s += '</g>';
-    for (const [c, key] of [[Y.BBG_KV_MONTH, 'capKV'], [Y.BBG_RV_MONTH, 'capRV']]) {
-      if (c < xMax) s += `<g class="cap"><line x1="${X(c)}" x2="${X(c)}" y1="${PT}" y2="${H - PB}"/><text x="${X(c) + 4}" y="${PT - 6}">${t(key)}</text></g>`;
+    // The two cap labels sit on one line unless they would collide; then the second drops a line.
+    const crowded = X(Y.BBG_RV_MONTH) - X(Y.BBG_KV_MONTH) < 90;
+    for (const [c, key, dy] of [[Y.BBG_KV_MONTH, 'capKV', 0], [Y.BBG_RV_MONTH, 'capRV', crowded ? 14 : 0]]) {
+      if (c < xMax) s += `<g class="cap"><line x1="${X(c)}" x2="${X(c)}" y1="${PT}" y2="${H - PB}"/><text x="${X(c) + 4}" y="${PT - 6 + dy}">${t(key)}</text></g>`;
     }
     if (on) s += `<path class="line-avg" d="${path(2)}"/>`;
     s += `<path class="line-month" d="${path(1)}"/>`;
@@ -646,7 +716,7 @@
     hv.querySelector('circle').setAttribute('cx', x);
     hv.querySelector('circle').setAttribute('cy', y);
     const lines = [t('tipGross', { v: fmtEurC(g) }), t('tipNet', { v: fmtEurC(c.regular.net) })];
-    if (settings.thirteenth) lines.push(t('tipAvg', { v: fmtEurC(c.average.net) }));
+    if (settings.thirteenth || settings.summerBonus) lines.push(t('tipAvg', { v: fmtEurC(c.average.net) }));
     lines.push(t('tipKeep', { keep: keepAt(g, c.regular.net) }));
     const tip = $('tip');
     tip.textContent = lines.join('\n');
@@ -694,7 +764,12 @@
     }
     setText($('novGross'), fmt(r.november.gross), quiet);
     setText($('novNet'), fmt(r.november.net), quiet);
+    setText($('sumGross'), fmt(r.summerMonth.gross), quiet);
+    setText($('sumNet'), fmt(r.summerMonth.net), quiet);
     document.querySelectorAll('[data-bonus]').forEach((el) => { el.hidden = !on; });
+    document.querySelectorAll('[data-summer]').forEach((el) => { el.hidden = !settings.summerBonus; });
+    document.querySelectorAll('[data-extra]').forEach((el) => { el.hidden = !on && !settings.summerBonus; });
+    $('summerRowLabel').textContent = monthName(settings.summerMonth);
     $('pinText').textContent = t('pinned', { cell: t('cell_' + anchor.field) });
     $('benefitLine').hidden = card === 0;
     $('benefitLine').textContent = t('benefitLine', {
@@ -710,7 +785,7 @@
         || ((k === 'benefit' || k === 'total') && card === 0);
       row.querySelector('th').textContent = t(k === 'health' && settings.insurance === 'private' ? 'row_healthPrivate' : 'row_' + k);
       const sign = ['gross', 'net', 'total'].includes(k) ? '' : k === 'benefit' ? '+' : '−';
-      for (const col of ['regular', 'bonus', 'year']) {
+      for (const col of ['regular', 'summer', 'bonus', 'year']) {
         const v = k === 'total' ? r[col].net + r[col].benefit : r[col][k];
         row.querySelector(`[data-col="${col}"]`).textContent = (v ? sign : '') + fmt(v);
       }
@@ -733,6 +808,10 @@
     $('publicFields').hidden = settings.insurance !== 'public';
     $('privateFields').hidden = settings.insurance !== 'private';
     $('subsidyHint').textContent = t('subsidyHint', { amount: fmtEurC(T.pkvSubsidy(settings)) });
+    $('summerFields').hidden = !settings.summerBonus;
+    $('summerPercentField').hidden = settings.summerMode !== 'percent';
+    $('summerAmountField').hidden = settings.summerMode !== 'fixed';
+    $('summerHint').textContent = t('summerHint', { month: monthName(settings.summerMonth), amount: fmtEurC(r.summer.gross) });
 
     const state = T.STATES.find(([c]) => c === settings.state);
     $('printSummary').textContent = t('summary', {
@@ -740,6 +819,7 @@
       children: settings.children, church: t(settings.church ? 'yes' : 'no'),
       insurance: lang === 'en' ? t(settings.insurance).toLowerCase() : t(settings.insurance),
       thirteenth: t(on ? 'yes' : 'no'), card: fmtEurC(card),
+      summer: !settings.summerBonus ? t('no') : `${settings.summerMode === 'percent' ? settings.summerPercent + ' %' : fmtEurC(settings.summerAmount)} (${monthName(settings.summerMonth)})`,
     });
 
     if (announce) {

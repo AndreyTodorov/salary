@@ -162,3 +162,31 @@ Approved after the independent review. Supersedes the sections above where they 
 - **Print stylesheet:** figures, a one-line settings summary, curve, breakdown, notes, assumptions. Controls hidden.
 - Open Graph title/description, `<noscript>` message, breakdown table scrolls inside its box on narrow screens, no change-flash on first render.
 - Repo: `.gitignore`, `README.md`.
+
+---
+
+## Revision 3 (2026-10-11): summer bonus, settings regrouped
+
+### Summer bonus
+
+- **Settings:**
+  - `summerBonus` (on/off, default off)
+  - `summerMode`: `percent` of monthly gross (`summerPercent`, 0–200, default 50) or `fixed` (`summerAmount`, default 1,500 €)
+  - `summerMonth`: 4–10 (April–October, default June). Restricting to April–October avoids the März-Klausel and keeps it before the 13th salary.
+- **Tax:** a sonstiger Bezug in its month (MSONST with JRE4 = 12 × pay). For the 13th salary in November, JRE4 = 12 × pay + summer bonus, because the PAP adds earlier sonstige Bezüge to JRE4.
+- **Social contributions:** §23a room up to its month. The 13th salary's room is reduced by the summer bonus's contributory part, per branch.
+- **Totals:** year = 12 × regular + summer + 13th; average = year ÷ 12. JAEG and midijob checks include the summer bonus.
+- **UI:**
+  - grid row "<month> with summer bonus"
+  - breakdown column "Summer bonus"
+  - the curve's dashed line is "Average month incl. bonuses"
+  - amber marks extra payments (13th salary and summer bonus)
+
+### Settings
+
+- The 13th salary switch reads "Receives 13th salary" (DE: "Erhält ein 13. Gehalt").
+- "About you" is grouped:
+  - **Personal:** age, children, tax class, church tax, where you work
+  - **Health insurance:** public/private, then Zusatzbeitrag or premium
+  - **Extra pay:** 13th salary, summer bonus, benefit card
+- The breakdown table's label column stays sticky when the numbers scroll sideways on narrow screens.
