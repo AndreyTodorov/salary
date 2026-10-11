@@ -25,6 +25,7 @@
     KV: 7300, KV_TAX: 7000, // actual KV contribution vs. Vorsorgepauschale (no sick-pay share)
     PV: 1800, PV_SN: 2300, PV_CHILDLESS: 600, PV_PER_CHILD: 250,
     ZB_AVERAGE: 2.9,        // percent
+    AGE_NOTE: 64,           // Altersentlastungsbetrag and Aktivrente are not modelled from this age
   };
 
   // Exact for 0 <= a < 4.5e15 and positive integer b.
@@ -265,11 +266,12 @@
     const year = {};
     for (const k of Object.keys(regular)) year[k] = regular[k] * 12 + summer[k] + bonus[k];
 
-    const yearGross = gross * (s.thirteenth ? 13 : 12) + sb;
+    const yearPay = pay * 12 + b + sb; // contributory yearly pay, incl. a taxable benefit card
     const notes = [];
-    if (gross > 0 && yearGross <= Y.MIDIJOB_MAX * 12) notes.push({ code: 'midijob', limit: Y.MIDIJOB_MAX });
-    if (s.insurance === 'private' && yearGross < Y.JAEG_YEAR) notes.push({ code: 'jaeg', limit: Y.JAEG_YEAR });
+    if (gross > 0 && yearPay <= Y.MIDIJOB_MAX * 12) notes.push({ code: 'midijob', limit: Y.MIDIJOB_MAX });
+    if (s.insurance === 'private' && yearPay < Y.JAEG_YEAR) notes.push({ code: 'jaeg', limit: Y.JAEG_YEAR });
     if (card > Y.SACHBEZUG_LIMIT) notes.push({ code: 'benefitTaxable', limit: Y.SACHBEZUG_LIMIT });
+    if (s.age >= Y.AGE_NOTE) notes.push({ code: 'age64', limit: Y.AGE_NOTE });
 
     return {
       regular,
@@ -296,10 +298,21 @@
   const FIELDS = Object.keys(READERS);
   const read = (result, field) => READERS[field](result);
 
-  // Lowest monthly gross whose field value reaches the target. Values rise with gross except for
-  // cent-level dips and the Soli cliff on the 13th salary (up to ~400 € a year), so after
-  // bisecting, scan 80 € of gross below the result for an earlier crossing.
-  const SCAN = 8000;
+  // Largest drop a field can take as gross rises: once the Soli Freigrenze is crossed, 5.5 % Soli is
+  // due on the whole tax of the one-off payments (at most 45 % of them). Monthly and gross fields
+  // have no such cliff; 3 € covers the dips when the annual tax steps up a euro.
+  function cliff(s, gross, field) {
+    if (!field.endsWith('Net') || field === 'monthlyNet') return 300;
+    const r = calculate(s, gross);
+    const soli = div((r.bonus.gross + r.summer.gross) * 55 * 45, 10000);
+    return 300 + (field === 'yearNet' ? soli : div(soli, 12));
+  }
+
+  // Lowest monthly gross whose field value reaches the target. Values rise with gross, but drop
+  // at the Soli cliff on the one-off payments and by up to a euro whenever the annual tax steps
+  // (a sawtooth with a period of 20-60 ct of gross). After bisecting, step down in 20 ct while the
+  // value stays within the cliff of the target, then scan the last 2 € cent by cent.
+  const STEP = 20, TAIL = 200;
   function solve(s, field, target) {
     const f = (g) => read(calculate(s, g), field);
     if (target <= 0) return 0;
@@ -309,8 +322,15 @@
       const mid = div(lo + hi, 2);
       if (f(mid) < target) lo = mid + 1; else hi = mid;
     }
-    for (let g = Math.max(0, lo - SCAN); g < lo; g++) if (f(g) >= target) return g;
-    return lo;
+    const drop = cliff(s, lo, field);
+    let found = lo;
+    for (let g = lo - STEP; g >= 0; g -= STEP) {
+      const v = f(g);
+      if (v >= target) found = g;
+      else if (v < target - drop) break;
+    }
+    for (let g = Math.max(0, found - TAIL); g < found; g++) if (f(g) >= target) return g;
+    return found;
   }
 
   // "5.000,50", "5000.50", "5,000.50", "65,000", "5 000 €" → cents; null if not a valid amount.
@@ -359,7 +379,29 @@
     return { settings: normalize(settings), anchor, lang };
   }
 
-  const api = { Y, pap, calculate, solve, read, parseAmount, pkvSubsidy, restore, normalize, DEFAULTS, STATES, FIELDS, MAX_GROSS };
+  // Share link: { settings, anchor, lang } <-> URL query. Only settings that differ from DEFAULTS
+  // are written. decodeState returns the saved-state shape for restore() to validate.
+  function encodeState({ settings, anchor, lang }) {
+    const q = new URLSearchParams();
+    if (anchor) { q.set('f', anchor.field); q.set('c', String(anchor.cents)); }
+    for (const k of Object.keys(DEFAULTS)) if (settings[k] !== DEFAULTS[k]) q.set(k, String(settings[k]));
+    if (lang) q.set('lang', lang);
+    return q.toString();
+  }
+  function decodeState(query) {
+    const q = new URLSearchParams(query);
+    const settings = {};
+    for (const k of Object.keys(DEFAULTS)) {
+      if (!q.has(k)) continue;
+      const v = q.get(k);
+      const d = DEFAULTS[k];
+      settings[k] = typeof d === 'boolean' ? v === 'true' : typeof d === 'number' ? Number(v) : v;
+    }
+    const anchor = q.has('f') ? { field: q.get('f'), cents: Number(q.get('c')) } : null;
+    return { settings, anchor, lang: q.get('lang') };
+  }
+
+  const api = { Y, pap, calculate, solve, read, parseAmount, pkvSubsidy, restore, normalize, encodeState, decodeState, DEFAULTS, STATES, FIELDS, MAX_GROSS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SalaryTax = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

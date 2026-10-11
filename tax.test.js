@@ -334,3 +334,33 @@ test('restore validates summer bonus fields', () => {
   const bad = T.restore({ settings: { summerBonus: 'yes', summerMode: 'x', summerPercent: -1, summerAmount: 1e12, summerMonth: 11 } });
   assert.deepEqual(bad.settings, T.DEFAULTS);
 });
+
+test('age 64 and older gets a note', () => {
+  const codes = (age) => T.calculate(S({ age }), 500000).notes.map((n) => n.code);
+  assert.deepEqual(codes(63), []);
+  assert.deepEqual(codes(64), ['age64']);
+});
+test('JAEG and midijob checks count a taxable benefit card', () => {
+  const codes = (o, g) => T.calculate(S({ thirteenth: false, ...o }), g).notes.map((n) => n.code);
+  assert.deepEqual(codes({ insurance: 'private' }, 640000), ['jaeg']);                              // 76,800
+  assert.deepEqual(codes({ insurance: 'private', benefitCard: 6000 }, 640000), ['benefitTaxable']); // 77,520
+  assert.deepEqual(codes({}, 198000), ['midijob']);
+  assert.deepEqual(codes({ benefitCard: 6000 }, 198000), ['benefitTaxable']);                       // 2,040
+});
+test('solver crosses the Soli cliff of a large fixed summer bonus', () => {
+  const s = SB({ summerMode: 'fixed', summerAmount: 5000000 });
+  const at = (x) => T.calculate(s, x).year.net;
+  const target = at(353200);
+  const g = T.solve(s, 'yearNet', target);
+  assert.ok(g <= 353200, `got ${g}`);
+  assert.ok(at(g) >= target && at(g - 1) < target);
+});
+test('state round-trips through a URL query', () => {
+  const state = { settings: S({ taxClass: 3, state: 'BY', church: true, summerBonus: true, summerAmount: 200000 }),
+    anchor: { field: 'yearNet', cents: 5000000 }, lang: 'de' };
+  const q = T.encodeState(state);
+  assert.ok(!q.includes('age='), 'defaults are left out');
+  assert.deepEqual(T.restore(T.decodeState(q)), state);
+  assert.deepEqual(T.restore(T.decodeState('')), { settings: T.DEFAULTS, anchor: null, lang: null });
+  assert.deepEqual(T.restore(T.decodeState('f=monthlyNet&c=abc&taxClass=9')), { settings: T.DEFAULTS, anchor: null, lang: null });
+});
