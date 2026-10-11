@@ -56,7 +56,7 @@ All money in integer cents. Port of the official BMF PAP 2026 pseudocode (`Lohns
 - Constants: GFB 12,348; tariff zones per §32a 2026 (UPTAB26); BBG RV/ALV 101,400; BBG KV/PV 69,750; SOLZFREI 20,350; W1/W2/W3 STKL5 14,071 / 34,939 / 222,260; ANP 1,230; SAP 36; EFA (class II) 4,260; KFB per child 9,756 (classes I–III), 4,878 (IV), 0 (V, VI).
 - Vorsorgepauschale: RV part 9.3% (capped), KV/PV part at employee rates incl. half Zusatzbeitrag (capped) or for PKV 12 × (premium − employer subsidy); 2026 rule MVSPHB with the 1,900 cap including ALV.
 - Soli with Freigrenze and 11.9% Milderung; church tax base = Lohnsteuer recomputed with Kinderfreibeträge.
-- PAP inputs derived from the UI: STKL, ZKF = children (classes I–IV), KVZ, PVZ = age ≥ 23 and no children, PVA = max(0, min(children, 5) − 1), PVS = Saxony, PKV, PKPV, PKPVAGZ, R = church.
+- PAP inputs derived from the UI: STKL, ZKF = 0.5 per child in classes I–II (unmarried parents share the allowance), 1.0 per child in III–IV, 0 in V–VI, KVZ, PVZ = age ≥ 23 and no children, PVA = max(0, min(children, 5) − 1), PVS = Saxony, PKV, PKPV, PKPVAGZ, R = church.
 
 ### 13th salary (PAP MSONST)
 
@@ -73,7 +73,7 @@ All money in integer cents. Port of the official BMF PAP 2026 pseudocode (`Lohns
 
 ### Reverse entry
 
-Monthly gross is the single source of truth. Editing another cell runs a binary search on the monthly gross in cents (0 to 1,000,000 €) for the value whose matching output is closest to the entry. All of these outputs rise with gross, so the search converges. Yearly and average gross are solved directly (÷ 13 or ÷ 12).
+Monthly gross is the single source of truth. Editing another cell runs a binary search on the monthly gross in cents (0 to 1,000,000 €), then scans ±2 € around the result for the value whose output is closest to the entry (net has cent-level dips where the annual tax steps up a euro). The last typed value stays fixed when settings change.
 
 ## Out of scope
 
