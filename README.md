@@ -9,6 +9,7 @@ A static, privacy-friendly salary calculator for employees in Germany. Type any 
 - Gross → net curve showing how much of each extra euro you keep.
 - English and German interface; everything runs in the browser, with no requests to third parties.
 - "Copy link" puts the salary and settings in the URL, so two offers can be compared side by side.
+- Four themes (Slate & Mint, Midnight Terminal, Bauhaus, Lavender Dusk); pick one for light and one for dark, or force a mode.
 
 ## Run
 
@@ -35,4 +36,4 @@ Push to GitHub, then Settings → Pages → Deploy from a branch → `main`, fol
 
 ## License notes
 
-The Archivo font in `fonts/` is licensed under the SIL Open Font License (`fonts/OFL.txt`).
+The fonts in `fonts/` (IBM Plex Sans, Manrope, Barlow Semi Condensed, Work Sans, Figtree) are licensed under the SIL Open Font License (`fonts/OFL.txt`, notices in `fonts/LICENSES.md`).

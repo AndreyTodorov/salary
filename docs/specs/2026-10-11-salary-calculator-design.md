@@ -215,3 +215,12 @@ Based on three independent reviews (calculation audit against the official BMF p
 - **Settings** order: tax class, state, church tax, children, age; health insurance; extra pay. Rows at least 44 px tall. On desktop the column scrolls inside the viewport. On phones a compact sticky gross/net bar appears when the hero is scrolled out of view.
 - **Curve:** "What a raise brings"; on narrow screens the readout is a fixed line above the chart instead of a floating tooltip; a second tap within 24 px applies the value; cap labels never overflow.
 - **Fixes:** November/summer figures are plain spans (no implicit live regions); settings changes are announced; cells keep a visible focus ring; invalid or clamped entries show a message; the class 2 reason is shown inline; Enter keeps focus; the change flash is visible; reduced motion skips it; print keeps the swatch colours and restores the assumptions state; the live text uses English number formatting in English; copy unified between the languages ("Every month" / "Jeden Monat", "13th salary" / "13. Gehalt").
+
+---
+
+## Revision 5 (2026-10-11): figures table kept, four themes with a picker
+
+- The hero-and-tiles layout from revision 4 was reverted: the figures stay one table with a Gross and a Net column (every month, summer month, November, average month, year). Field styling, the "Pinned" badge and the keep-chip remain.
+- **Themes:** Slate & Mint (IBM Plex Sans), Midnight Terminal (Manrope, Barlow Semi Condensed figures), Bauhaus (Work Sans, 4 px corners, 2 px borders) and Lavender Dusk (Figtree). Each defines a light and a dark palette: `paper`, `surface`, `field`, `ink`, `muted`, `line`, `edit`, `net`, `net-ink` (net for small text), `tax`, `social`, `bonus`, `bonus-ink`, `flash`, `ring`, `pin-ink`, `shadow`, plus `font-ui`, `font-fig`, `radius`, `radius-sm`, `bw`.
+- **Picker** in the settings column under "Appearance": colour mode (Auto, Light, Dark), light theme, dark theme. Defaults: Auto, Slate & Mint for light, Midnight Terminal for dark. Stored in `localStorage` under `salary-theme-v1`, not in the share link. A small script in `<head>` applies the remembered theme before the first paint; without JavaScript the defaults apply through `prefers-color-scheme`.
+- Fonts are self-hosted latin subsets in `fonts/` (SIL OFL, `fonts/LICENSES.md`); only the active theme's faces are fetched. Archivo was removed.
