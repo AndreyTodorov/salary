@@ -149,7 +149,8 @@
   const BBG_RV_MONTH = 845000;
   const JAEG_MONTH = 645000;
   const MIDIJOB_MAX = 200000;
-  const PKV_SUBSIDY_MAX = 50859 + 10463; // KV + PV, 2026
+  // Max employer subsidy for private insurance, 2026: KV 7.3 % + ZB/2 of the cap, PV 1.8 % (Saxony 1.3 %).
+  const PKV_SUBSIDY_KV = 50859, PKV_SUBSIDY_PV = 10463, PKV_SUBSIDY_PV_SN = 7556;
   const BONUS_MONTH = 11; // November
 
   const STATES = [
@@ -174,7 +175,8 @@
   }
 
   function pkvSubsidy(s) {
-    return Math.min(div(s.privatePremium, 2), PKV_SUBSIDY_MAX);
+    const pv = s.state === 'SN' ? PKV_SUBSIDY_PV_SN : PKV_SUBSIDY_PV;
+    return Math.min(div(s.privatePremium, 2), PKV_SUBSIDY_KV + pv);
   }
 
   function papInput(s, gross) {
@@ -302,7 +304,29 @@
     return Math.round(parseFloat(t) * 100);
   }
 
-  const api = { pap, calculate, solve, read, parseAmount, DEFAULTS, STATES, FIELDS, MAX_GROSS };
+  // Saved page state from localStorage: keep only valid values, fall back to DEFAULTS.
+  function restore(saved) {
+    const src = (saved && saved.settings) || {};
+    const ok = {
+      taxClass: (v) => Number.isInteger(v) && v >= 1 && v <= 6,
+      state: (v) => STATES.some(([code]) => code === v),
+      church: (v) => typeof v === 'boolean',
+      age: (v) => Number.isInteger(v) && v >= 15 && v <= 99,
+      children: (v) => Number.isInteger(v) && v >= 0 && v <= 6,
+      insurance: (v) => v === 'public' || v === 'private',
+      zusatzbeitrag: (v) => Number.isFinite(v) && v >= 0 && v <= 10,
+      privatePremium: (v) => Number.isInteger(v) && v >= 0 && v <= 1000000,
+      thirteenth: (v) => typeof v === 'boolean',
+    };
+    const settings = { ...DEFAULTS };
+    for (const k of Object.keys(ok)) if (ok[k](src[k])) settings[k] = src[k];
+    const a = saved && saved.anchor;
+    const anchor = a && FIELDS.includes(a.field) && Number.isInteger(a.cents) && a.cents >= 0
+      ? { field: a.field, cents: a.cents } : null;
+    return { settings, anchor };
+  }
+
+  const api = { pap, calculate, solve, read, parseAmount, pkvSubsidy, restore, DEFAULTS, STATES, FIELDS, MAX_GROSS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SalaryTax = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

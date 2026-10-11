@@ -166,3 +166,19 @@ test('parseAmount accepts German and English formats', () => {
   assert.equal(T.parseAmount('abc'), null);
   assert.equal(T.parseAmount('-5'), null);
 });
+
+test('private subsidy cap is lower in Saxony (care 1.3 % employer share)', () => {
+  const r = T.calculate(S({ insurance: 'private', privatePremium: 130000, state: 'SN' }), 800000).regular;
+  assert.equal(r.health, 130000 - (50859 + 7556));
+  assert.equal(T.pkvSubsidy(S({ insurance: 'private', privatePremium: 130000, state: 'SN' })), 58415);
+});
+test('restore ignores invalid saved state', () => {
+  const bad = T.restore({ settings: { taxClass: 7, insurance: 'x', state: 'XX', age: 'old', children: -1,
+    church: 'yes', thirteenth: 1, zusatzbeitrag: NaN, privatePremium: -5 }, anchor: { field: 'yearNet', cents: 'abc' } });
+  assert.deepEqual(bad.settings, T.DEFAULTS);
+  assert.equal(bad.anchor, null);
+  const good = T.restore({ settings: { taxClass: 3, state: 'SN', church: true }, anchor: { field: 'yearNet', cents: 5000000 } });
+  assert.deepEqual(good.settings, { ...T.DEFAULTS, taxClass: 3, state: 'SN', church: true });
+  assert.deepEqual(good.anchor, { field: 'yearNet', cents: 5000000 });
+  assert.deepEqual(T.restore(null), { settings: T.DEFAULTS, anchor: null });
+});
