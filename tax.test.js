@@ -202,3 +202,11 @@ test('13th salary tax in classes III, V and VI', () => {
   assert.deepEqual([hi.STS, hi.SOLZS], [630000, 34650]);
 });
 test('Y exposes the tax year', () => assert.equal(T.Y.YEAR, 2026));
+test('notes are codes and count the 13th salary', () => {
+  const codes = (o, g) => T.calculate(S(o), g).notes.map((n) => n.code);
+  assert.deepEqual(codes({ insurance: 'private' }, 600000), []);            // 78,000 a year incl. 13th
+  assert.deepEqual(codes({ insurance: 'private', thirteenth: false }, 600000), ['jaeg']);
+  assert.deepEqual(codes({}, 190000), []);                                  // average 2,058.33
+  assert.deepEqual(codes({ thirteenth: false }, 190000), ['midijob']);
+  assert.deepEqual(T.calculate(S({ thirteenth: false }), 190000).notes[0], { code: 'midijob', limit: 200000 });
+});

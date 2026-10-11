@@ -245,13 +245,10 @@
     const year = {};
     for (const k of Object.keys(regular)) year[k] = regular[k] * 12 + bonus[k];
 
+    const yearGross = gross * (s.thirteenth ? 13 : 12);
     const notes = [];
-    if (gross > 0 && gross <= Y.MIDIJOB_MAX) {
-      notes.push('Below 2,000 € a month special mini- and midijob rules apply, so these results are only approximate.');
-    }
-    if (s.insurance === 'private' && gross < Y.JAEG_YEAR / 12) {
-      notes.push('Private health insurance is normally only possible above 6,450 € a month (77,400 € a year).');
-    }
+    if (gross > 0 && yearGross <= Y.MIDIJOB_MAX * 12) notes.push({ code: 'midijob', limit: Y.MIDIJOB_MAX });
+    if (s.insurance === 'private' && yearGross < Y.JAEG_YEAR) notes.push({ code: 'jaeg', limit: Y.JAEG_YEAR });
 
     return {
       regular,
