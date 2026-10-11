@@ -181,7 +181,10 @@
     *, *::before, *::after { transition: none !important; }
   }
   @media print {
-    :root { --paper: #fff; --surface: #fff; --ink: #000; --muted: #444; --line: #bbb; --edit: transparent; --flash: transparent; }
+    :root {
+      --paper: #fff; --surface: #fff; --ink: #000; --muted: #444; --line: #bbb; --edit: transparent; --flash: transparent;
+      --net: #0E7A5C; --tax: #7D4A73; --social: #4C6A8C; --bonus: #E0A12B; --bonus-ink: #8A5A00; color-scheme: light;
+    }
     .page { padding: 0; max-width: none; }
     .lang, .settings, .tip, .curve .hover, .curve figcaption, .noscript { display: none !important; }
     .print-only { display: block; margin: 0 0 1rem; font-size: .875rem; }
@@ -357,7 +360,7 @@
       capKV: 'Health cap', capRV: 'Pension cap',
       curveAria: 'Chart of monthly net pay by monthly gross salary. Your salary: {gross} gross, {net} net.',
       curveCaption: 'At your salary you keep {keep} ct of every extra euro. A raise of 500 € gross adds about {raise} net a month.',
-      curveHint: 'Click the curve to use that salary.',
+      curveHint: 'Click the curve to use that salary. On a touch screen, tap once to see the values and again to use them.',
       tipGross: 'Gross {v}', tipNet: 'Net {v}', tipAvg: 'Average month {v}', tipKeep: 'Keeps {keep} ct per extra €',
       settingsTitle: 'About you',
       thirteenth: '13th salary in November',
@@ -416,7 +419,7 @@
       capKV: 'BBG KV', capRV: 'BBG RV',
       curveAria: 'Diagramm: Monatsnetto in Abhängigkeit vom Monatsbrutto. Ihr Gehalt: {gross} brutto, {net} netto.',
       curveCaption: 'Bei Ihrem Gehalt bleiben von jedem zusätzlichen Euro {keep} ct netto. 500 € mehr brutto bringen etwa {raise} netto im Monat.',
-      curveHint: 'Klicken Sie auf die Kurve, um dieses Gehalt zu übernehmen.',
+      curveHint: 'Klicken Sie auf die Kurve, um dieses Gehalt zu übernehmen. Auf Touchscreens zeigt der erste Tipp die Werte, der zweite übernimmt sie.',
       tipGross: 'Brutto {v}', tipNet: 'Netto {v}', tipAvg: 'Durchschnittsmonat {v}', tipKeep: '{keep} ct je zusätzlichem €',
       settingsTitle: 'Ihre Angaben',
       thirteenth: '13. Gehalt im November',
@@ -631,8 +634,7 @@
     return Math.min(geo.xMax, Math.max(0, Math.round(g / 1000) * 1000));
   }
 
-  svg.addEventListener('pointermove', (e) => {
-    if (!geo) return;
+  function showHover(e) {
     const g = pointerGross(e);
     const c = T.calculate(settings, g);
     const hv = svg.querySelector('.hover');
@@ -655,7 +657,13 @@
     const half = tip.offsetWidth / 2;
     tip.style.left = Math.min(Math.max(rect.left - box.left + x * scale, half), box.width - half) + 'px';
     tip.style.top = (rect.top - box.top + y * scale) + 'px';
-  });
+    return g;
+  }
+
+  // Mouse: hover shows values, click applies. Touch: first tap shows values, a second tap
+  // at the same spot (within 100 €) applies, so scrolling past the chart never changes the salary.
+  let touchPick = null;
+  svg.addEventListener('pointermove', (e) => { if (geo && e.pointerType !== 'touch') showHover(e); });
   svg.addEventListener('pointerleave', () => {
     $('tip').hidden = true;
     const hv = svg.querySelector('.hover');
@@ -663,7 +671,13 @@
   });
   svg.addEventListener('click', (e) => {
     if (!geo) return;
-    anchor = { field: 'monthlyGross', cents: pointerGross(e) };
+    const g = pointerGross(e);
+    if (e.pointerType === 'touch' && (touchPick === null || Math.abs(g - touchPick) > 10000)) {
+      touchPick = showHover(e);
+      return;
+    }
+    touchPick = null;
+    anchor = { field: 'monthlyGross', cents: g };
     render(null, { announce: true });
   });
 
