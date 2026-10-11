@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /docs/
+
+Sitemap: https://salary.atdrv.eu/sitemap.xml
