@@ -143,7 +143,7 @@ test('solve every field round-trips within a cent', () => {
   for (const f of T.FIELDS) {
     const target = T.read(truth, f);
     const got = T.read(T.calculate(s, T.solve(s, f, target)), f);
-    assert.ok(Math.abs(got - target) <= 1, `${f}: ${got} vs ${target}`);
+    assert.ok(got >= target && got - target <= 15, `${f}: ${got} vs ${target}`);
   }
 });
 test('yearly gross with 13th divides by 13', () => {
@@ -235,4 +235,30 @@ test('benefit card above 50 € counts toward the §23a room', () => {
   // 8,400 + 60 = 8,460 > RV cap 8,450: no room left for the 13th salary in RV/ALV
   const b = T.calculate(S({ benefitCard: 6000 }), 840000).bonus;
   assert.equal(b.pension, 0);
+});
+test('solver returns the lowest gross reaching at least the target', () => {
+  const s = S();
+  const g = T.solve(s, 'yearNet', 5000000);
+  const at = (x) => T.calculate(s, x).year.net;
+  assert.ok(at(g) >= 5000000);
+  assert.ok(at(g - 1) < 5000000);
+});
+test('solver crosses the Soli threshold on the 13th salary', () => {
+  const s = S({ taxClass: 2, insurance: 'private', children: 6, age: 20 });
+  assert.equal(T.solve(s, 'yearNet', 7575203), 943896);
+});
+test('solver is fast enough for typing', () => {
+  const s = S({ church: true, children: 2 });
+  const t0 = performance.now();
+  for (let i = 0; i < 10; i++) T.solve(s, 'averageNet', 300000 + i * 50000);
+  assert.ok((performance.now() - t0) / 10 < 25);
+});
+test('parseAmount reads English thousands and rejects bad grouping', () => {
+  assert.equal(T.parseAmount('65,000'), 6500000);
+  assert.equal(T.parseAmount('1,234,567'), 123456700);
+  assert.equal(T.parseAmount('5,50'), 550);
+  assert.equal(T.parseAmount('5.'), 500);
+  assert.equal(T.parseAmount('5000.123'), null);
+  assert.equal(T.parseAmount('50.00.0'), null);
+  assert.equal(T.parseAmount('1,2,3'), null);
 });

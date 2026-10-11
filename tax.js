@@ -276,8 +276,10 @@
   const FIELDS = Object.keys(READERS);
   const read = (result, field) => READERS[field](result);
 
-  // Every field rises with gross, but net dips by a few cents where the annual tax steps
-  // up a euro. Bisect to the crossing, then pick the closest value within ±2 € of gross.
+  // Lowest monthly gross whose field value reaches the target. Values rise with gross except for
+  // cent-level dips and the Soli cliff on the 13th salary (up to ~400 € a year), so after
+  // bisecting, scan 80 € of gross below the result for an earlier crossing.
+  const SCAN = 8000;
   function solve(s, field, target) {
     const f = (g) => read(calculate(s, g), field);
     if (target <= 0) return 0;
@@ -287,28 +289,25 @@
       const mid = div(lo + hi, 2);
       if (f(mid) < target) lo = mid + 1; else hi = mid;
     }
-    let best = lo, bestDiff = Math.abs(f(lo) - target);
-    for (let g = Math.max(0, lo - 200); g <= Math.min(MAX_GROSS, lo + 200); g++) {
-      const d = Math.abs(f(g) - target);
-      if (d < bestDiff) { best = g; bestDiff = d; }
-    }
-    return best;
+    for (let g = Math.max(0, lo - SCAN); g < lo; g++) if (f(g) >= target) return g;
+    return lo;
   }
 
-  // "5.000,50", "5000.50", "5,000.50", "5 000 €" → cents; null if not a non-negative amount.
+  // "5.000,50", "5000.50", "5,000.50", "65,000", "5 000 €" → cents; null if not a valid amount.
   function parseAmount(text) {
-    let t = String(text).replace(/[\s€ ]/g, '');
+    const t = String(text).replace(/[\s€\u00a0]/g, '');
     if (!/^\d[\d.,]*$/.test(t)) return null;
-    const lastComma = t.lastIndexOf(','), lastDot = t.lastIndexOf('.');
-    if (lastComma > lastDot) {
-      t = t.replace(/\./g, '').replace(',', '.');           // German decimal comma
-    } else if (lastDot > lastComma && lastComma >= 0) {
-      t = t.replace(/,/g, '');                             // English thousands comma
-    } else if (lastDot >= 0 && (/\.\d{3}$/.test(t) || t.indexOf('.') !== lastDot)) {
-      t = t.replace(/\./g, '');                            // German thousands dots
+    let cents;
+    if (/^\d+$/.test(t)) cents = Number(t) * 100;
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t) || /^\d{1,3}(,\d{3})+$/.test(t)) cents = Number(t.replace(/[.,]/g, '')) * 100;
+    else {
+      const i = Math.max(t.lastIndexOf('.'), t.lastIndexOf(','));
+      const int = t.slice(0, i), dec = t.slice(i + 1), group = t[i] === ',' ? '\\.' : ',';
+      if (dec.length > 2 || /[.,]/.test(dec)) return null;
+      if (!new RegExp(`^(\\d+|\\d{1,3}(${group}\\d{3})+)$`).test(int)) return null;
+      cents = Number(int.replace(/[.,]/g, '')) * 100 + Number(dec.padEnd(2, '0'));
     }
-    if (!/^\d+(\.\d{0,2})?$/.test(t)) return null;
-    return Math.round(parseFloat(t) * 100);
+    return Number.isSafeInteger(cents) ? cents : null;
   }
 
   // Saved page state from localStorage: keep only valid values, fall back to DEFAULTS.
