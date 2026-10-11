@@ -19,7 +19,7 @@
     } catch (e) { /* storage unavailable */ }
   })();
 </script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 15 L6 10 L10 8 L15 2' fill='none' stroke='%230E7A5C' stroke-width='2.5'/%3E%3Ccircle cx='10' cy='8' r='2.5' fill='%23E0A12B'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230F172A'/%3E%3Cpath d='M7 24 L13.5 17.5 L18.5 19.5 L25 9' fill='none' stroke='%232EE59D' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='25' cy='9' r='3.4' fill='%23FFC53D'/%3E%3C/svg%3E">
 <style>
   /* Self-hosted theme fonts (SIL OFL, see fonts/LICENSES.md). A face only loads when its theme is active. */
   @font-face { font-family: "IBM Plex Sans"; src: url("fonts/ibm-plex-sans-400-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
@@ -225,7 +225,7 @@
   .figures td { padding: .4rem 0 .4rem .75rem; vertical-align: middle; }
   .figures tbody tr + tr > * { border-top: 1px solid var(--line); }
   .figures .row-bonus th[scope="row"] { color: var(--bonus-ink); }
-  .figures .cell, .figures .out { font-size: clamp(1.25rem, 4.6vw, 1.75rem); }
+  .figures .cell, .figures .out { font-size: clamp(1.125rem, 6.6vw - .9rem, 1.75rem); }
   .figures .out { padding: .3rem .7rem .3rem 0; }
   .figures-foot { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin-top: 1rem; }
   .chip {
@@ -241,13 +241,11 @@
   @media (max-width: 479px) {
     .card { padding: 1rem; }
     .about summary { margin: -1rem; padding: .9rem 1rem; }
-    .table-wrap { margin: 0 -1rem; }
-    .table-scroll { padding: 0 1rem; }
     .long { display: none; }
     .short { display: inline; }
     .figures th[scope="row"] { padding-right: .4rem; width: 26%; }
     .figures td { padding-left: .4rem; width: 37%; }
-    .figures .cell, .figures .out { font-size: 1.125rem; }
+    .figures .cell, .figures .out { font-size: clamp(.8125rem, 4.1vw, 1.125rem); }
     .figures .cellbox { padding: .25rem .45rem; }
     .figures .unit { display: none; }
     .figures .out { padding-right: .45rem; }
@@ -268,8 +266,8 @@
   .share-legend .l-social::before { background: var(--social); }
 
   /* Breakdown table */
-  .table-wrap { position: relative; margin: 0 -1.25rem; }
-  .table-scroll { overflow-x: auto; padding: 0 1.25rem; }
+  .table-wrap { --gutter: 1.25rem; position: relative; margin: 0 calc(-1 * var(--gutter)); }
+  .table-scroll { overflow-x: auto; padding: 0 var(--gutter); }
   /* A fade on the right edge shows that more columns are hidden; it goes away at the end of the scroll. */
   .table-wrap::after {
     content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 2.5rem; pointer-events: none; opacity: 0; transition: opacity .2s;
@@ -281,7 +279,12 @@
   .breakdown thead th { border-top: 0; border-bottom: 1px solid var(--line); }
   .breakdown tbody tr:first-child > * { border-top: 0; }
   .breakdown th:first-child { text-align: left; padding-left: 0; white-space: normal; min-width: 11rem; }
-  .breakdown tr > :first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); padding-right: .6rem; hyphens: auto; }
+  /* The sticky labels stop at the scroller's padding, so a shadow paints the gutter to their left; once scrolled, a fade marks their right edge. */
+  .breakdown tr > :first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); padding-right: .6rem; hyphens: auto; box-shadow: calc(-1 * var(--gutter)) 0 var(--surface); }
+  .table-wrap.scrolled tr > :first-child::after {
+    content: ""; position: absolute; top: 0; bottom: 0; right: -.75rem; width: .75rem; pointer-events: none;
+    background: linear-gradient(to right, var(--surface), transparent);
+  }
   .breakdown thead th { font-weight: 500; color: var(--muted); }
   .breakdown thead th.bonus-col { color: var(--bonus-ink); }
   .breakdown tbody th { font-weight: 450; }
@@ -292,6 +295,9 @@
   .breakdown .net th, .breakdown .net td, .breakdown .total th, .breakdown .total td { font-weight: 700; color: var(--net-ink); }
   .breakdown .net th::before, .breakdown .total th::before { background: var(--net); }
   .breakdown .benefit th::before { background: transparent; border: 1px dashed var(--net); }
+  @media (max-width: 479px) {
+    .table-wrap { --gutter: 1rem; }
+  }
   .notes { margin: 1rem 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .875rem; }
   .notes li { padding-left: .9rem; border-left: 3px solid var(--bonus); margin-bottom: .5rem; }
   .assumptions { margin-top: 1rem; font-size: .875rem; color: var(--muted); }
@@ -304,31 +310,28 @@
   .legend { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; margin: 0 0 .5rem; font-size: .8125rem; color: var(--muted); }
   .legend span::before { content: ""; display: inline-block; width: 1.4rem; border-top: 2.5px solid var(--net); vertical-align: middle; margin-right: .45rem; }
   .legend .avg::before { border-top: 2px dashed var(--bonus-ink); }
-  .readout { display: none; min-height: 1.5rem; margin: 0 0 .5rem; font-size: .875rem; color: var(--muted); }
-  .readout b { color: var(--ink); font-weight: 650; }
   .curve svg { display: block; width: 100%; overflow: visible; cursor: crosshair; touch-action: pan-y; }
   .curve svg text { font-family: inherit; font-size: 12px; fill: var(--muted); }
   .curve .grid line { stroke: var(--line); }
+  .curve .grid .axis { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
   .curve .cap line { stroke: var(--social); stroke-dasharray: 2 4; }
-  .curve .cap text { fill: var(--social); font-size: 11px; }
+  .curve .cap text { fill: var(--social); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
   .curve .line-month { fill: none; stroke: var(--net); stroke-width: 2.5; stroke-linejoin: round; }
   .curve .line-avg { fill: none; stroke: var(--bonus-ink); stroke-width: 2; stroke-dasharray: 6 4; }
-  .curve .you line, .curve .hover line { stroke: var(--muted); stroke-dasharray: 3 3; }
+  .curve .you line { stroke: var(--net); stroke-dasharray: 3 3; }
   .curve .you circle { fill: var(--net); stroke: var(--surface); stroke-width: 3; }
-  .curve .hover { display: none; }
+  .curve .you text { display: none; }
+  .curve svg:has(.hover.show) .you text { display: inline; }
+  .curve svg .you text { fill: var(--net-ink); font-size: 11px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+  .curve .hover { display: none; pointer-events: none; }
   .curve .hover.show { display: inline; }
+  .curve .hover line { stroke: var(--muted); stroke-dasharray: 3 3; }
   .curve .hover circle { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
-  .tip {
-    position: absolute; z-index: 2; pointer-events: none; white-space: pre; line-height: 1.4;
-    background: var(--ink); color: var(--paper); font-size: .8125rem; padding: .45rem .6rem; border-radius: 6px;
-    transform: translate(-50%, calc(-100% - 14px));
-  }
+  .curve .hover circle.avg { stroke: var(--bonus-ink); }
+  .curve svg .note text { fill: var(--muted); }
+  .curve svg .note .delta { fill: var(--ink); font-size: 13px; font-weight: 650; }
   .curve figcaption { margin-top: .6rem; color: var(--muted); font-size: .9375rem; max-width: 62ch; }
   .curve figcaption .hint { display: block; font-size: .8125rem; margin-top: .2rem; }
-  @media (max-width: 519px) {
-    .readout { display: block; }
-    .tip { display: none !important; }
-  }
 
   /* Settings */
   .group { margin: 0 0 1.25rem; border: 0; padding: 0; min-width: 0; }
@@ -382,14 +385,14 @@
       --net: #0E7A5C; --net-ink: #0E7A5C; --tax: #7D4A73; --social: #4C6A8C; --bonus: #E0A12B; --bonus-ink: #8A5A00; --pin-ink: #fff; color-scheme: light;
     }
     .page { padding: 0; max-width: none; }
-    .top-actions, .sticky-bar, .settings, .tip, .readout, .curve .hover, .curve .hint, .noscript, .pin, .msg, .prefs { display: none !important; }
+    .top-actions, .sticky-bar, .settings, .curve .hover, .curve .hint, .noscript, .pin, .msg, .prefs { display: none !important; }
     .print-only { display: block; margin: 0 0 1rem; font-size: .875rem; }
     .layout { display: block; margin-top: 1rem; }
     .layout > *, .results > *, .details > * { margin-bottom: 1rem; break-inside: avoid; }
     .card { box-shadow: none; }
     .figures .cell, .figures .out { font-size: 1.25rem; }
     .breakdown th:first-child { min-width: 0; }
-    .table-wrap::after { display: none; }
+    .table-wrap::after, .table-wrap.scrolled tr > :first-child::after { display: none; }
     :focus-visible { outline: none; }
     .bar span, .share-legend li::before, .breakdown tbody th::before { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     @page { margin: 14mm; }
@@ -460,12 +463,12 @@
               <td><div class="cellbox net" data-cell="monthlyNet"></div></td>
             </tr>
             <tr class="row-bonus" data-summer>
-              <th scope="row"><span id="summerRowLabel"></span><small data-i18n="rowSummerSub"></small></th>
+              <th scope="row"><span class="long" id="summerRowLabel"></span><span class="short" id="summerRowShort"></span><small data-i18n="rowSummerSub"></small></th>
               <td><span class="out" id="sumGross"></span></td>
               <td><span class="out net" id="sumNet"></span></td>
             </tr>
             <tr class="row-bonus" data-bonus>
-              <th scope="row"><span data-i18n="rowNov"></span><small data-i18n="rowNovSub"></small></th>
+              <th scope="row"><span class="long" data-i18n="rowNov"></span><span class="short" data-i18n="rowNovShort"></span><small data-i18n="rowNovSub"></small></th>
               <td><span class="out" id="novGross"></span></td>
               <td><span class="out net" id="novNet"></span></td>
             </tr>
@@ -612,9 +615,7 @@
           <span class="month" data-i18n="legendMonth"></span>
           <span class="avg" data-extra data-i18n="legendAvg"></span>
         </div>
-        <p class="readout" id="readout" aria-hidden="true"></p>
         <svg id="curve" role="img" height="240"></svg>
-        <div class="tip" id="tip" hidden></div>
         <figcaption><span id="curveCaption"></span><span class="hint" data-i18n="curveHint"></span></figcaption>
       </figure>
     </div>
@@ -639,7 +640,7 @@
       figuresTitle: 'Your salary',
       gross: 'Gross', net: 'Net',
       rowMonth: 'Every month',
-      rowNov: 'November', rowNovSub: 'with 13th salary',
+      rowNov: 'November', rowNovShort: 'Nov', rowNovSub: 'with 13th salary',
       rowAvg: 'Average month', rowAvgShort: 'Average', rowAvgSub: 'year ÷ 12', rowYear: 'Year',
       yearSub12: '12 salaries', yearSub13: '13 salaries', yearSubPlus: '{n} salaries plus summer bonus',
       cell_monthlyGross: 'monthly gross', cell_monthlyNet: 'monthly net',
@@ -657,9 +658,10 @@
       capKV: 'Health cap', capRV: 'Pension cap',
       curveAria: 'Chart of monthly net pay by monthly gross salary. Your salary: {gross} gross, {net} net.',
       curveCaption: 'A raise of 500 € gross adds about {raise} net a month.',
-      curveHint: 'Click the curve to use that salary. On a touch screen, tap once to see the values and again to use them.',
-      tipGross: 'Gross {v}', tipNet: 'Net {v}', tipAvg: 'Average month {v}', tipKeep: 'Keeps {keep} ct per extra €',
-      readout: 'Gross <b>{gross}</b> · Net <b>{net}</b> · keeps {keep} ct per extra €',
+      curveHint: 'Point at the chart, or touch and slide along it, to see what another salary would pay.',
+      axisGross: 'Gross per month, €', axisNet: 'Net, €', you: 'Your salary',
+      noteDelta: '{dg} gross → {dn} net', noteDeltaShort: '{dg} → {dn} net', noteAbs: '{g} gross · {n} net',
+      tipAvg: 'average month {v}', tipKeep: 'keeps {keep} ct per extra €',
       copyLink: 'Copy link', linkCopied: 'Link copied', copyFailed: 'Copy the address bar',
       settingsTitle: 'About you',
       thirteenth: '13th salary',
@@ -716,9 +718,9 @@
       figuresTitle: 'Ihr Gehalt',
       gross: 'Brutto', net: 'Netto',
       rowMonth: 'Jeden Monat',
-      rowNov: 'November', rowNovSub: 'mit 13. Gehalt',
+      rowNov: 'November', rowNovShort: 'Nov.', rowNovSub: 'mit 13. Gehalt',
       rowAvg: 'Durchschnittsmonat', rowAvgShort: 'Ø Monat', rowAvgSub: 'Jahr ÷ 12', rowYear: 'Jahr',
-      yearSub12: '12 Gehälter', yearSub13: '13 Gehälter', yearSubPlus: '{n} Gehälter plus Sommerbonus',
+      yearSub12: '12 Gehälter', yearSub13: '13 Gehälter', yearSubPlus: '{n} Gehälter plus Sommer\u00ADbonus',
       cell_monthlyGross: 'Monatsbrutto', cell_monthlyNet: 'Monatsnetto',
       cell_averageGross: 'durchschnittliches Monatsbrutto', cell_averageNet: 'durchschnittliches Monatsnetto',
       cell_yearGross: 'Jahresbrutto', cell_yearNet: 'Jahresnetto',
@@ -734,9 +736,10 @@
       capKV: 'KV-Grenze', capRV: 'RV-Grenze',
       curveAria: 'Diagramm: Monatsnetto in Abhängigkeit vom Monatsbrutto. Ihr Gehalt: {gross} brutto, {net} netto.',
       curveCaption: '500 € mehr brutto bringen etwa {raise} netto im Monat.',
-      curveHint: 'Klicken Sie auf die Kurve, um dieses Gehalt zu übernehmen. Auf Touchscreens zeigt der erste Tipp die Werte, der zweite übernimmt sie.',
-      tipGross: 'Brutto {v}', tipNet: 'Netto {v}', tipAvg: 'Durchschnittsmonat {v}', tipKeep: '{keep} ct je zusätzlichem €',
-      readout: 'Brutto <b>{gross}</b> · Netto <b>{net}</b> · {keep} ct je zusätzlichem €',
+      curveHint: 'Zeigen Sie auf das Diagramm oder fahren Sie mit dem Finger darüber, um zu sehen, was ein anderes Gehalt bringt.',
+      axisGross: 'Brutto im Monat, €', axisNet: 'Netto, €', you: 'Ihr Gehalt',
+      noteDelta: '{dg} brutto → {dn} netto', noteDeltaShort: '{dg} → {dn} netto', noteAbs: '{g} brutto · {n} netto',
+      tipAvg: 'Durchschnittsmonat {v}', tipKeep: '{keep} ct je zusätzlichem €',
       copyLink: 'Link kopieren', linkCopied: 'Link kopiert', copyFailed: 'Bitte Adresszeile kopieren',
       settingsTitle: 'Ihre Angaben',
       thirteenth: '13. Gehalt',
@@ -747,7 +750,7 @@
       summerPercentMode: '% vom Monatsbrutto', summerFixedMode: 'Fester Betrag',
       summerPercent: 'Prozent', summerAmount: 'Betrag', summerMonthLabel: 'Ausgezahlt im',
       summerHint: 'Auszahlung im {month}: {amount} brutto.',
-      rowSummerSub: 'mit Sommerbonus', colSummer: 'Sommerbonus',
+      rowSummerSub: 'mit Sommer\u00ADbonus', colSummer: 'Sommerbonus',
       taxClass: 'Steuerklasse',
       class1: 'Ledig oder verheiratet mit Partner im Ausland.',
       class2: 'Alleinerziehend mit Kind im Haushalt.',
@@ -797,7 +800,7 @@
   const fmtEur = (c) => whole.format(Math.round(c / 100)) + ' €';
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const $ = (id) => document.getElementById(id);
-  const monthName = (m) => new Intl.DateTimeFormat(lang === 'de' ? 'de-DE' : 'en-GB', { month: 'long' }).format(new Date(2026, m - 1, 1));
+  const monthName = (m, month = 'long') => new Intl.DateTimeFormat(lang === 'de' ? 'de-DE' : 'en-GB', { month }).format(new Date(2026, m - 1, 1));
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   let lang = (navigator.language || 'en').toLowerCase().startsWith('de') ? 'de' : 'en';
@@ -933,7 +936,9 @@
   }
 
   // Gross → net curve
-  const PL = 54, PR = 14, PT = 20, PB = 30;
+  // PT grows with the note strip above the plot, which is taller on narrow charts.
+  const PL = 54, PR = 14, PB = 46;
+  let PT = 20;
   let geo = null;
 
   function niceStep(range, count) {
@@ -947,7 +952,8 @@
   function renderCurve() {
     const r = lastResult, gross = lastGross, on = settings.thirteenth || settings.summerBonus;
     const W = Math.max(280, Math.round(svg.getBoundingClientRect().width) || 640);
-    const H = W < 520 ? 200 : 240;
+    PT = 20 + (W < 520 ? 52 : 36);
+    const H = (W < 520 ? 216 : 256) + PT - 20;
     const xMax = Math.max(800000, Math.ceil(gross * 2 / 100000) * 100000);
     const pts = [];
     for (let i = 0; i <= 80; i++) {
@@ -971,31 +977,46 @@
       const anchorPos = g === 0 ? 'start' : g + xStep > xMax ? 'end' : 'middle';
       s += `<text x="${X(g)}" y="${H - PB + 18}" text-anchor="${anchorPos}">${whole.format(g / 100)}</text>`;
     }
+    // Axis titles: net in the plot's empty top-left corner, gross under the right end of the x axis.
+    s += `<text class="axis" x="${PL + 6}" y="${PT + 14}">${t('axisNet')}</text><text x="${W - PR}" y="${H - 4}" text-anchor="end">${t('axisGross')}</text>`;
     s += '</g>';
-    // Cap labels sit on one line unless they would collide; a label near the right edge is anchored to its line's left.
-    const crowded = X(Y.BBG_RV_MONTH) - X(Y.BBG_KV_MONTH) < 90;
-    for (const [c, key, dy] of [[Y.BBG_KV_MONTH, 'capKV', 0], [Y.BBG_RV_MONTH, 'capRV', crowded ? 14 : 0]]) {
-      if (c >= xMax) continue;
-      const right = X(c) > W * 0.78;
-      s += `<g class="cap"><line x1="${X(c)}" x2="${X(c)}" y1="${PT}" y2="${H - PB}"/><text x="${X(c) + (right ? -4 : 4)}" y="${PT - 6 + dy}" text-anchor="${right ? 'end' : 'start'}">${t(key)}</text></g>`;
-    }
+    // Each cap label sits above the plot beside its own line: to its right where possible, otherwise to its left, so the
+    // labels never overlap or reach past the other line. If no arrangement fits, the health label drops into the plot left
+    // of its line and the pension label ends at the chart's right edge, over its own line.
+    const caps = [[Y.BBG_KV_MONTH, 'capKV'], [Y.BBG_RV_MONTH, 'capRV']].filter(([c]) => c < xMax)
+      .map(([c, key]) => ({ x: X(c), key, w: t(key).length * 6 }));
+    const span = (p, left) => (left ? [p.x - 4 - p.w, p.x - 4] : [p.x + 4, p.x + 4 + p.w]);
+    const fits = (sides) => caps.every((p, i) => {
+      const [a, b] = span(p, sides[i]);
+      return a >= 0 && b <= W && caps.every((o, j) => {
+        if (j === i) return true;
+        const [oa, ob] = span(o, sides[j]);
+        return (o.x < a || o.x > b) && (oa > b + 6 || ob < a - 6);
+      });
+    });
+    const sides = [[false, false], [true, false], [false, true], [true, true]].find(fits);
+    caps.forEach((p, i) => {
+      const [x, left, dy] = sides ? [p.x + (sides[i] ? -4 : 4), sides[i], 0] : i ? [W, true, 0] : [p.x - 4, true, 14];
+      s += `<g class="cap"><line x1="${p.x}" x2="${p.x}" y1="${PT}" y2="${H - PB}"/><text x="${x}" y="${PT - 6 + dy}" text-anchor="${left ? 'end' : 'start'}">${t(p.key)}</text></g>`;
+    });
     if (on) s += `<path class="line-avg" d="${path(2)}"/>`;
     s += `<path class="line-month" d="${path(1)}"/>`;
-    s += `<g class="you"><line x1="${X(gross)}" x2="${X(gross)}" y1="${Yp(r.regular.net)}" y2="${H - PB}"/><circle cx="${X(gross)}" cy="${Yp(r.regular.net)}" r="6"/></g>`;
-    s += '<g class="hover"><line/><circle r="5"/></g>';
+    // "Your salary" sits below and to the right of the dot, where the rising curve leaves room.
+    const yx = X(gross), yy = Yp(r.regular.net), youRight = yx + 10 + t('you').length * 6 <= W - PR;
+    s += `<g class="you"><line x1="${yx}" x2="${yx}" y1="${yy}" y2="${H - PB}"/><circle cx="${yx}" cy="${yy}" r="6"/>`
+      + `<text x="${youRight ? yx + 10 : yx - 10}" y="${Math.min(yy + 18, H - PB - 6)}" text-anchor="${youRight ? 'start' : 'end'}">${t('you')}</text></g>`;
+    s += '<g class="hover"><line/><circle class="avg" r="4"/><circle r="5"/></g><g class="note"><text></text></g>';
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
     svg.setAttribute('height', H);
     svg.innerHTML = s;
-    $('tip').hidden = true;
-    touchPick = null;
     svg.setAttribute('aria-label', t('curveAria', { gross: fmtEurC(gross), net: fmtEurC(r.regular.net) }));
     geo = { W, H, xMax, X, Yp };
+    setNote(gross);
 
     const keep = keepAt(gross, r.regular.net);
     const raise = T.calculate(settings, gross + 50000).regular.net - r.regular.net;
     $('curveCaption').textContent = t('curveCaption', { raise: fmtEur(raise) });
     $('keepChip').textContent = t('keep', { keep });
-    $('readout').innerHTML = t('readout', { gross: fmtEurC(gross), net: fmtEurC(r.regular.net), keep });
   }
 
   // Gross at the pointer, or null outside the plot area.
@@ -1007,66 +1028,66 @@
     return Math.min(geo.xMax, Math.max(0, Math.round(g / 1000) * 1000));
   }
 
-  function showHover(e, g) {
+  // The strip above the plot compares the salary under the pointer with the current one; at rest it shows the
+  // current salary. It slides with the pointer, so it never covers the curve or sits under a finger.
+  function setNote(g) {
+    const c = g === lastGross ? lastResult : T.calculate(settings, g), net = c.regular.net;
+    const signed = (v) => (v > 0 ? '+' : '−') + fmtEur(Math.abs(v));
+    const dg = g - lastGross, dn = net - lastResult.regular.net;
+    const head = Math.abs(dg) < 100 ? t('you') : t('noteDelta', { dg: signed(dg), dn: signed(dn) });
+    const rest = [t('noteAbs', { g: fmtEur(g), n: fmtEur(net) }), t('tipKeep', { keep: keepAt(g, net) })];
+    if (settings.thirteenth || settings.summerBonus) rest.push(t('tipAvg', { v: fmtEur(c.average.net) }));
+    // Wide charts fit the details on one line; the average month is dropped if they do not.
+    const text = svg.querySelector('.note text');
+    const fill = (lines) => {
+      text.innerHTML = lines.map((l, i) => `<tspan x="0" dy="${i ? 16 : 0}"${i ? '' : ' class="delta"'}>${l}</tspan>`).join('');
+      return text.getBBox().width;
+    };
+    let w = geo.W >= 520 ? fill([head, rest.join(' · ')]) : fill([head, ...rest.slice(0, 2)]);
+    if (w > geo.W - PL - PR && rest.length > 2) w = fill([head, rest.slice(0, 2).join(' · ')]);
+    // Very large amounts on narrow charts: the heading drops the word "gross".
+    if (w > geo.W && Math.abs(dg) >= 100) w = fill([t('noteDeltaShort', { dg: signed(dg), dn: signed(dn) }), ...rest.slice(0, 2)]);
+    text.setAttribute('transform', `translate(${Math.max(0, Math.min(Math.max(geo.X(g) - w / 2, PL), geo.W - PR - w))},13)`);
+  }
+
+  function showHover(g) {
     const c = T.calculate(settings, g);
     const hv = svg.querySelector('.hover');
-    const x = geo.X(g), y = geo.Yp(c.regular.net);
+    const x = geo.X(g);
     hv.classList.add('show');
     const line = hv.querySelector('line');
     line.setAttribute('x1', x); line.setAttribute('x2', x);
-    line.setAttribute('y1', PT); line.setAttribute('y2', geo.H - PB);
-    hv.querySelector('circle').setAttribute('cx', x);
-    hv.querySelector('circle').setAttribute('cy', y);
-    const keep = keepAt(g, c.regular.net);
-    const lines = [t('tipGross', { v: fmtEurC(g) }), t('tipNet', { v: fmtEurC(c.regular.net) })];
-    if (settings.thirteenth || settings.summerBonus) lines.push(t('tipAvg', { v: fmtEurC(c.average.net) }));
-    lines.push(t('tipKeep', { keep }));
-    const tip = $('tip');
-    tip.textContent = lines.join('\n');
-    tip.hidden = false;
-    $('readout').innerHTML = t('readout', { gross: fmtEurC(g), net: fmtEurC(c.regular.net), keep });
-    // SVG elements have no offsetLeft: position from bounding boxes relative to the figure.
-    const box = $('curveBox').getBoundingClientRect(), rect = svg.getBoundingClientRect();
-    const scale = rect.width / geo.W;
-    const half = tip.offsetWidth / 2;
-    tip.style.left = Math.min(Math.max(rect.left - box.left + x * scale, half), box.width - half) + 'px';
-    tip.style.top = (rect.top - box.top + y * scale) + 'px';
+    line.setAttribute('y1', PT - 20); line.setAttribute('y2', geo.H - PB);
+    const [avg, dot] = hv.querySelectorAll('circle');
+    dot.setAttribute('cx', x); dot.setAttribute('cy', geo.Yp(c.regular.net));
+    avg.setAttribute('cx', x); avg.setAttribute('cy', geo.Yp(c.average.net));
+    avg.style.display = settings.thirteenth || settings.summerBonus ? '' : 'none';
+    setNote(g);
   }
 
   function hideHover() {
-    $('tip').hidden = true;
     const hv = svg.querySelector('.hover');
-    if (hv) hv.classList.remove('show');
-    if (lastResult) $('readout').innerHTML = t('readout', { gross: fmtEurC(lastGross), net: fmtEurC(lastResult.regular.net), keep: keepAt(lastGross, lastResult.regular.net) });
+    if (!hv || !hv.classList.contains('show')) return;
+    hv.classList.remove('show');
+    setNote(lastGross);
   }
 
-  // Mouse: hover shows values, click applies. Touch: first tap shows values, a second tap within
-  // 24 px applies, so scrolling past the chart never changes the salary.
-  let touchPick = null;
-  svg.addEventListener('pointermove', (e) => {
-    if (!geo || e.pointerType === 'touch') return;
-    const g = pointerGross(e);
-    if (g === null) hideHover(); else showHover(e, g);
-  });
-  svg.addEventListener('pointerleave', hideHover);
-  svg.addEventListener('click', (e) => {
+  // A mouse shows the note while hovering; a finger shows it on touch and moves it while sliding sideways
+  // (vertical swipes still scroll the page). Nothing here changes the salary.
+  function pick(e) {
     if (!geo) return;
     const g = pointerGross(e);
-    if (g === null) return;
-    if (e.pointerType === 'touch' && (touchPick === null || Math.abs(e.clientX - touchPick.x) > 24)) {
-      showHover(e, g);
-      touchPick = { x: e.clientX };
-      return;
-    }
-    touchPick = null;
-    hideHover();
-    anchor = { field: 'monthlyGross', cents: g };
-    render(null, { announce: true });
-  });
+    if (g === null) hideHover(); else showHover(g);
+  }
+  svg.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') pick(e); });
+  svg.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' || e.buttons) pick(e); });
+  svg.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hideHover(); });
+  document.addEventListener('pointerdown', (e) => { if (!svg.contains(e.target)) hideHover(); });
 
   function scrollHint() {
     const el = $('tableScroll');
     $('tableWrap').classList.toggle('more', el.scrollWidth - el.clientWidth - el.scrollLeft > 4);
+    $('tableWrap').classList.toggle('scrolled', el.scrollLeft > 0);
   }
   $('tableScroll').addEventListener('scroll', scrollHint, { passive: true });
 
@@ -1097,6 +1118,7 @@
     document.querySelectorAll('[data-summer]').forEach((el) => { el.hidden = !settings.summerBonus; });
     document.querySelectorAll('[data-extra]').forEach((el) => { el.hidden = !on && !settings.summerBonus; });
     $('summerRowLabel').textContent = monthName(settings.summerMonth);
+    $('summerRowShort').textContent = monthName(settings.summerMonth, 'short');
     $('yearSub').textContent = settings.summerBonus ? t('yearSubPlus', { n: on ? 13 : 12 }) : t(on ? 'yearSub13' : 'yearSub12');
     $('benefitLine').hidden = card === 0;
     $('benefitLine').textContent = t('benefitLine', {
