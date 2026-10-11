@@ -119,40 +119,33 @@
   }
   @media (prefers-color-scheme: dark) { .pin { color: #0F1614; } }
   .msg { display: block; margin: .35rem 0 0; color: var(--tax); font-size: .8125rem; }
-  /* Hero messages keep their line so the two figures never jump while typing. */
-  .hero .msg { min-height: 1.25rem; }
-  .hero .msg[hidden] { display: block !important; visibility: hidden; }
   .out { display: block; padding: .3rem 0; font-size: 1.5rem; font-weight: 640; font-stretch: 72%; line-height: 1.3; text-align: right; transition: background-color .6s ease; border-radius: 6px; }
   .out.net { color: var(--net); }
 
-  /* Hero */
-  .hero { display: grid; gap: 1rem 2rem; grid-template-columns: minmax(0, 1fr); align-items: end; }
-  .hero > div { min-width: 0; }
-  .hero label, .tile .k { display: block; font-size: .875rem; font-weight: 600; color: var(--muted); margin-bottom: .4rem; }
-  .hero .cellbox .cell { font-size: clamp(1.75rem, 6vw, 2.25rem); }
-  .hero .hero-net .cellbox { padding: .4rem .9rem .4rem .8rem; }
-  .hero .hero-net .cell { font-size: clamp(2.75rem, 11vw, 4.25rem); line-height: 1.15; font-weight: 700; font-stretch: 70%; }
-  .hero .hero-net .unit { font-size: 1.25rem; }
-  .hero-foot { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
+  /* Figures: the editable grid */
+  .figures table { width: 100%; border-collapse: collapse; }
+  .figures th { font-weight: 500; color: var(--muted); text-align: right; padding: 0 0 .5rem .75rem; font-size: .875rem; }
+  .figures th[scope="row"] { text-align: left; padding: .6rem .75rem .6rem 0; color: var(--ink); font-weight: 600; font-size: .9375rem; width: 28%; hyphens: auto; }
+  .figures th[scope="row"] small { display: block; color: var(--muted); font-size: .8125rem; font-weight: 400; }
+  .figures td { padding: .4rem 0 .4rem .75rem; vertical-align: middle; }
+  .figures tbody tr + tr > * { border-top: 1px solid var(--line); }
+  .figures .row-bonus th[scope="row"] { color: var(--bonus-ink); }
+  .figures .cell, .figures .out { font-size: clamp(1.25rem, 4.6vw, 1.75rem); }
+  .figures .out { padding: .3rem .7rem .3rem 0; }
+  .figures-foot { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin-top: 1rem; }
   .chip {
     display: inline-flex; align-items: center; gap: .4rem; margin: 0; padding: .3rem .75rem; border-radius: 999px;
     background: var(--flash); color: var(--net); font-size: .875rem; font-weight: 600;
   }
   @media (prefers-color-scheme: light) { .chip { color: #0A5C45; } }
   .benefit-line { margin: 0; color: var(--muted); font-size: .875rem; }
-  @media (min-width: 560px) {
-    .hero { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+  @media (max-width: 479px) {
+    .figures th[scope="row"] { padding-right: .4rem; width: 26%; }
+    .figures td { padding-left: .4rem; }
+    .figures .cellbox { padding: .25rem .45rem; }
+    .figures .unit { display: none; }
+    .figures .out { padding-right: .45rem; }
   }
-
-  /* Tiles */
-  .tiles { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr)); }
-  .tile { padding: 1rem 1rem 1.1rem; }
-  .tile .row { margin-top: .6rem; }
-  .tile .row .k { margin: 0 0 .25rem; font-size: .8125rem; }
-  .tile .cellbox { padding: .2rem .6rem; }
-  .tile .cell, .tile .out { font-size: 1.3rem; }
-  .tile .out { padding: .2rem 0; }
-  .tile.bonus h3 { color: var(--bonus-ink); }
 
   /* Share bar */
   .share { margin: 0 0 1.25rem; }
@@ -283,7 +276,7 @@
     .layout { display: block; margin-top: 1rem; }
     .layout > *, .results > *, .details > * { margin-bottom: 1rem; break-inside: avoid; }
     .card { box-shadow: none; }
-    .hero .hero-net .cell { font-size: 2rem; }
+    .figures .cell, .figures .out { font-size: 1.25rem; }
     .bar span, .share-legend li::before, .breakdown tbody th::before { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     @page { margin: 14mm; }
   }
@@ -318,41 +311,40 @@
       <h2 id="figures-title" class="sr-only" data-i18n="figuresTitle"></h2>
       <p class="print-only" id="printSummary"></p>
 
-      <div class="hero card" id="hero">
-        <div class="hero-gross">
-          <label for="monthlyGross" data-i18n="heroGross"></label>
-          <div class="cellbox" data-cell="monthlyGross"></div>
-        </div>
-        <div class="hero-net">
-          <label for="monthlyNet" data-i18n="heroNet"></label>
-          <div class="cellbox net" data-cell="monthlyNet"></div>
-        </div>
-        <div class="hero-foot">
+      <div class="figures card" id="figures">
+        <table>
+          <thead><tr><th scope="col"><span class="sr-only" data-i18n="item"></span></th><th scope="col" data-i18n="gross"></th><th scope="col" data-i18n="net"></th></tr></thead>
+          <tbody>
+            <tr>
+              <th scope="row" data-i18n="rowMonth"></th>
+              <td><div class="cellbox" data-cell="monthlyGross"></div></td>
+              <td><div class="cellbox net" data-cell="monthlyNet"></div></td>
+            </tr>
+            <tr class="row-bonus" data-summer>
+              <th scope="row"><span id="summerRowLabel"></span><small data-i18n="rowSummerSub"></small></th>
+              <td><span class="out" id="sumGross"></span></td>
+              <td><span class="out net" id="sumNet"></span></td>
+            </tr>
+            <tr class="row-bonus" data-bonus>
+              <th scope="row"><span data-i18n="rowNov"></span><small data-i18n="rowNovSub"></small></th>
+              <td><span class="out" id="novGross"></span></td>
+              <td><span class="out net" id="novNet"></span></td>
+            </tr>
+            <tr data-extra>
+              <th scope="row"><span data-i18n="rowAvg"></span><small data-i18n="rowAvgSub"></small></th>
+              <td><div class="cellbox" data-cell="averageGross"></div></td>
+              <td><div class="cellbox net" data-cell="averageNet"></div></td>
+            </tr>
+            <tr>
+              <th scope="row"><span data-i18n="rowYear"></span><small id="yearSub"></small></th>
+              <td><div class="cellbox" data-cell="yearGross"></div></td>
+              <td><div class="cellbox net" data-cell="yearNet"></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="figures-foot">
           <p class="chip" id="keepChip"></p>
           <p class="benefit-line" id="benefitLine" hidden></p>
-        </div>
-      </div>
-
-      <div class="tiles">
-        <div class="tile card" data-extra>
-          <h3><span data-i18n="rowAvg"></span><small data-i18n="rowAvgSub"></small></h3>
-          <div class="row"><label class="k" for="averageGross" data-i18n="gross"></label><div class="cellbox" data-cell="averageGross"></div></div>
-          <div class="row"><label class="k" for="averageNet" data-i18n="net"></label><div class="cellbox net" data-cell="averageNet"></div></div>
-        </div>
-        <div class="tile card bonus" data-summer>
-          <h3><span id="summerRowLabel"></span><small data-i18n="rowSummerSub"></small></h3>
-          <div class="row"><span class="k" data-i18n="gross"></span><span class="out" id="sumGross"></span></div>
-          <div class="row"><span class="k" data-i18n="net"></span><span class="out net" id="sumNet"></span></div>
-        </div>
-        <div class="tile card bonus" data-bonus>
-          <h3><span data-i18n="rowNov"></span><small data-i18n="rowNovSub"></small></h3>
-          <div class="row"><span class="k" data-i18n="gross"></span><span class="out" id="novGross"></span></div>
-          <div class="row"><span class="k" data-i18n="net"></span><span class="out net" id="novNet"></span></div>
-        </div>
-        <div class="tile card">
-          <h3><span data-i18n="rowYear"></span><small id="yearSub"></small></h3>
-          <div class="row"><label class="k" for="yearGross" data-i18n="gross"></label><div class="cellbox" data-cell="yearGross"></div></div>
-          <div class="row"><label class="k" for="yearNet" data-i18n="net"></label><div class="cellbox net" data-cell="yearNet"></div></div>
         </div>
       </div>
       <p class="sr-only" id="live" aria-live="polite"></p>
@@ -499,7 +491,7 @@
       lede: 'Edit any gross or net figure and everything else is recalculated. Employees, tax year {year}.',
       figuresTitle: 'Your salary',
       gross: 'Gross', net: 'Net',
-      heroGross: 'Monthly gross', heroNet: 'Monthly net',
+      rowMonth: 'Every month',
       rowNov: 'November', rowNovSub: 'with 13th salary',
       rowAvg: 'Average month', rowAvgSub: 'year ÷ 12', rowYear: 'Year',
       yearSub12: '12 salaries', yearSub13: '13 salaries', yearSubPlus: '{n} salaries plus summer bonus',
@@ -574,7 +566,7 @@
       lede: 'Ändern Sie einen beliebigen Brutto- oder Nettobetrag, alles andere wird neu berechnet. Arbeitnehmer, Steuerjahr {year}.',
       figuresTitle: 'Ihr Gehalt',
       gross: 'Brutto', net: 'Netto',
-      heroGross: 'Monatsbrutto', heroNet: 'Monatsnetto',
+      rowMonth: 'Jeden Monat',
       rowNov: 'November', rowNovSub: 'mit 13. Gehalt',
       rowAvg: 'Durchschnittsmonat', rowAvgSub: 'Jahr ÷ 12', rowYear: 'Jahr',
       yearSub12: '12 Gehälter', yearSub13: '13 Gehälter', yearSubPlus: '{n} Gehälter plus Sommerbonus',
@@ -1070,10 +1062,10 @@
   window.addEventListener('beforeprint', () => { assumptionsWereOpen = $('assumptions').open; $('assumptions').open = true; });
   window.addEventListener('afterprint', () => { $('assumptions').open = assumptionsWereOpen; });
 
-  // On phones, a compact gross/net bar follows the user while the hero is scrolled away.
+  // On phones, a compact gross/net bar follows the user while the figures are scrolled away.
   new IntersectionObserver(([entry]) => {
     $('stickyBar').classList.toggle('show', !entry.isIntersecting && entry.boundingClientRect.top < 0);
-  }).observe($('hero'));
+  }).observe($('figures'));
 
   let resizeFrame = 0;
   new ResizeObserver(() => {
