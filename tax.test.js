@@ -46,3 +46,23 @@ test('gross 0 gives no tax', () => {
   const r = pap({ STKL: 1, RE4: 0 });
   assert.deepEqual([r.LSTLZZ, r.SOLZLZZ], [0, 0]);
 });
+test('13th salary at 3000', () => {
+  const r = pap({ STKL: 1, RE4: 300000, JRE4: 3600000, SONSTB: 300000 });
+  assert.equal(r.STS, 66400);
+  assert.equal(r.SOLZS, 0);
+});
+test('13th salary at 5000 with church', () => {
+  const r = pap({ STKL: 1, RE4: 500000, R: 1, JRE4: 6000000, SONSTB: 500000 });
+  assert.equal(r.STS, 138300);
+  assert.equal(r.SOLZS, 0);
+  assert.equal(r.BKS, 138300);
+});
+test('13th salary at 8000 has Soli without Milderung', () => {
+  const r = pap({ STKL: 1, RE4: 800000, JRE4: 9600000, SONSTB: 800000 });
+  assert.equal(r.STS, 314900);
+  assert.equal(r.SOLZS, 17319);
+});
+test('no bonus means no bonus tax', () => {
+  const r = pap({ STKL: 1, RE4: 500000, JRE4: 6000000, SONSTB: 0 });
+  assert.deepEqual([r.STS, r.SOLZS, r.BKS], [0, 0, 0]);
+});

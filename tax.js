@@ -121,11 +121,27 @@
       solzlzz = div(solzj, 12);
     }
 
+    // MSONST / MOSONST / MRE4SONST / STSMIN / MSOLZSTS
+    let sts = 0, solzs = 0;
+    const sonstb = input.SONSTB || 0;
+    if (sonstb > 0) {
+      const jre4 = input.JRE4 || 0;
+      const without = annualTax(jre4, p);
+      const withB = annualTax(jre4 + sonstb, p);
+      sts = Math.max(0, (withB.st - without.st) * 100);
+      if (sts > 0) {
+        const solzszve = p.zkf > 0 ? withB.zve - p.kfb : withB.zve;
+        if (incomeTax(solzszve, p) > solzfrei) solzs = div(sts * 55, 1000);
+      }
+    }
+
     return {
       LSTLZZ: div(lstjahr * 100, 12),
       SOLZLZZ: solzlzz,
       BK: p.church ? div(jbmg * 100, 12) : 0,
-      STS: 0, SOLZS: 0, BKS: 0,
+      STS: sts,
+      SOLZS: solzs,
+      BKS: p.church ? sts : 0,
     };
   }
 
