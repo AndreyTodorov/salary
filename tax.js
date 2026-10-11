@@ -178,6 +178,7 @@
   const DEFAULTS = {
     taxClass: 1, state: 'BE', church: false, age: 30, children: 0,
     insurance: 'public', zusatzbeitrag: Y.ZB_AVERAGE, privatePremium: 60000, thirteenth: true, benefitCard: 0,
+    summerBonus: false, summerMode: 'percent', summerPercent: 50, summerAmount: 150000, summerMonth: 6,
   };
 
   const roundRate = (cents, rate) => div(cents * rate + RATE / 2, RATE);
@@ -232,8 +233,9 @@
   }
 
   // §23a SGB IV: one-off payment fills the room under the pro-rata annual cap up to its month.
-  function bonusBase(gross, bonus, monthCap) {
-    const room = BONUS_MONTH * monthCap - BONUS_MONTH * Math.min(gross, monthCap);
+  // `used` is the contributory part of earlier one-off payments this year.
+  function bonusBase(pay, bonus, month, monthCap, used) {
+    const room = month * monthCap - month * Math.min(pay, monthCap) - used;
     return Math.min(bonus, Math.max(0, room));
   }
 
@@ -241,20 +243,29 @@
     const card = s.benefitCard || 0;
     const pay = gross + (card > Y.SACHBEZUG_LIMIT ? card : 0); // taxable and contributory monthly pay
     const b = s.thirteenth ? gross : 0;
-    const r = pap(papInput(s, pay, b));
+    const sb = !s.summerBonus ? 0 : s.summerMode === 'fixed' ? s.summerAmount : div(gross * s.summerPercent + 50, 100);
+    // The summer bonus (April–October) comes first; when the 13th salary is taxed in November,
+    // the summer bonus counts as already paid (PAP: earlier sonstige Bezüge are added to JRE4).
+    const rS = pap(papInput(s, pay, sb));
+    const rB = pap({ ...papInput(s, pay, b), JRE4: pay * 12 + sb });
     const churchRate = s.state === 'BW' || s.state === 'BY' ? 8 : 9;
+    const church = (bk) => div(bk * churchRate, 100);
     const privateShare = s.insurance === 'private' ? s.privatePremium - pkvSubsidy(s) : 0;
 
-    const regular = breakdown(gross, r.LSTLZZ, r.SOLZLZZ, div(r.BK * churchRate, 100),
+    const regular = breakdown(gross, rS.LSTLZZ, rS.SOLZLZZ, church(rS.BK),
       contributions(s, Math.min(pay, Y.BBG_KV_MONTH), Math.min(pay, Y.BBG_RV_MONTH), privateShare), card);
 
-    const bonus = breakdown(b, r.STS, r.SOLZS, div(r.BKS * churchRate, 100),
-      contributions(s, bonusBase(pay, b, Y.BBG_KV_MONTH), bonusBase(pay, b, Y.BBG_RV_MONTH), 0), 0);
+    const m = s.summerMonth;
+    const sKv = bonusBase(pay, sb, m, Y.BBG_KV_MONTH, 0), sRv = bonusBase(pay, sb, m, Y.BBG_RV_MONTH, 0);
+    const summer = breakdown(sb, rS.STS, rS.SOLZS, church(rS.BKS), contributions(s, sKv, sRv, 0), 0);
+
+    const bonus = breakdown(b, rB.STS, rB.SOLZS, church(rB.BKS), contributions(s,
+      bonusBase(pay, b, BONUS_MONTH, Y.BBG_KV_MONTH, sKv), bonusBase(pay, b, BONUS_MONTH, Y.BBG_RV_MONTH, sRv), 0), 0);
 
     const year = {};
-    for (const k of Object.keys(regular)) year[k] = regular[k] * 12 + bonus[k];
+    for (const k of Object.keys(regular)) year[k] = regular[k] * 12 + summer[k] + bonus[k];
 
-    const yearGross = gross * (s.thirteenth ? 13 : 12);
+    const yearGross = gross * (s.thirteenth ? 13 : 12) + sb;
     const notes = [];
     if (gross > 0 && yearGross <= Y.MIDIJOB_MAX * 12) notes.push({ code: 'midijob', limit: Y.MIDIJOB_MAX });
     if (s.insurance === 'private' && yearGross < Y.JAEG_YEAR) notes.push({ code: 'jaeg', limit: Y.JAEG_YEAR });
@@ -263,7 +274,9 @@
     return {
       regular,
       bonus,
+      summer,
       november: { gross: regular.gross + bonus.gross, net: regular.net + bonus.net },
+      summerMonth: { gross: regular.gross + summer.gross, net: regular.net + summer.net },
       average: { gross: Math.round(year.gross / 12), net: Math.round(year.net / 12) },
       year,
       notes,
@@ -330,6 +343,11 @@
       zusatzbeitrag: (v) => Number.isFinite(v) && v >= 0 && v <= 10,
       privatePremium: (v) => Number.isInteger(v) && v >= 0 && v <= 1000000,
       thirteenth: (v) => typeof v === 'boolean',
+      summerBonus: (v) => typeof v === 'boolean',
+      summerMode: (v) => v === 'percent' || v === 'fixed',
+      summerPercent: (v) => Number.isInteger(v) && v >= 0 && v <= 200,
+      summerAmount: (v) => Number.isInteger(v) && v >= 0 && v <= 10000000,
+      summerMonth: (v) => Number.isInteger(v) && v >= 4 && v <= 10,
       benefitCard: (v) => Number.isInteger(v) && v >= 0 && v <= 100000,
     };
     const settings = { ...DEFAULTS };

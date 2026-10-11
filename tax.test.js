@@ -284,3 +284,53 @@ test('states carry German names', () => {
   assert.deepEqual(T.STATES.find(([c]) => c === 'BY'), ['BY', 'Bavaria', 'Bayern']);
   assert.ok(T.STATES.every((s) => s.length === 3));
 });
+
+const SB = (o) => S({ summerBonus: true, summerMode: 'percent', summerPercent: 50, summerMonth: 6, ...o });
+
+test('summer bonus is taxed as a one-off payment; the 13th counts it as already paid (BMF)', () => {
+  const r = T.calculate(SB({ church: true }), 500000);
+  assert.equal(r.summer.gross, 250000);
+  assert.equal(r.summer.incomeTax, 68400);
+  assert.equal(r.bonus.incomeTax, 141100);
+  const hi = T.calculate(SB(), 800000);
+  assert.deepEqual([hi.summer.incomeTax, hi.summer.soli], [152400, 8382]);
+  assert.deepEqual([hi.bonus.incomeTax, hi.bonus.soli], [330500, 18177]);
+});
+test('summer bonus uses the contribution room up to its month; the 13th gets the rest', () => {
+  // 5,700 €/month leaves 112.50 €/month under the KV cap: June room 675, November room 1,237.50 − 675
+  const r = T.calculate(SB({ summerPercent: 100 }), 570000);
+  assert.equal(r.summer.health, 5906);  // 675 × 8.75 %
+  assert.equal(r.bonus.health, 4922);   // 562.50 × 8.75 %
+  assert.equal(r.summer.pension, 53010);
+  assert.equal(r.bonus.pension, 53010);
+});
+test('summer bonus as a fixed amount flows into month, year and average', () => {
+  const r = T.calculate(SB({ summerMode: 'fixed', summerAmount: 150000 }), 500000);
+  assert.equal(r.summer.gross, 150000);
+  assert.equal(r.year.gross, 500000 * 13 + 150000);
+  assert.equal(r.year.net, r.regular.net * 12 + r.bonus.net + r.summer.net);
+  assert.equal(r.summerMonth.net, r.regular.net + r.summer.net);
+  assert.equal(r.average.gross, Math.round((500000 * 13 + 150000) / 12));
+});
+test('summer bonus off adds nothing', () => {
+  const r = T.calculate(S(), 500000);
+  assert.equal(r.summer.gross, 0);
+  assert.equal(r.year.gross, 6500000);
+});
+test('JAEG note counts the summer bonus', () => {
+  const codes = (o) => T.calculate(S({ insurance: 'private', ...o }), 570000).notes.map((n) => n.code);
+  assert.deepEqual(codes({}), ['jaeg']);                                              // 74,100 a year
+  assert.deepEqual(codes({ summerBonus: true, summerMode: 'percent', summerPercent: 100, summerMonth: 6 }), []); // 79,800
+});
+test('solver reaches at least the target with a percentage summer bonus', () => {
+  const s = SB();
+  const g = T.solve(s, 'yearNet', 5000000);
+  const at = (x) => T.calculate(s, x).year.net;
+  assert.ok(at(g) >= 5000000 && at(g - 1) < 5000000);
+});
+test('restore validates summer bonus fields', () => {
+  const good = { summerBonus: true, summerMode: 'fixed', summerPercent: 75, summerAmount: 200000, summerMonth: 7 };
+  assert.deepEqual(T.restore({ settings: good }).settings, { ...T.DEFAULTS, ...good });
+  const bad = T.restore({ settings: { summerBonus: 'yes', summerMode: 'x', summerPercent: -1, summerAmount: 1e12, summerMonth: 11 } });
+  assert.deepEqual(bad.settings, T.DEFAULTS);
+});
