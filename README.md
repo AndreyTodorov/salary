@@ -8,6 +8,7 @@ A static, privacy-friendly salary calculator for employees in Germany. Type any 
 - €50 benefit card (Sachbezug), tax-free up to the limit and fully taxed above it.
 - Gross → net curve showing how much of each extra euro you keep.
 - English and German interface; everything runs in the browser, with no requests to third parties.
+- "Copy link" puts the salary and settings in the URL, so two offers can be compared side by side.
 
 ## Run
 
