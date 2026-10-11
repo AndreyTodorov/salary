@@ -201,7 +201,7 @@ Based on three independent reviews (calculation audit against the official BMF p
 
 - The payroll tax port was verified against the BMF test interface in 92 scenarios with no mismatch; every constant in `Y` was confirmed against official 2026 sources. No changes to the tax maths.
 - **Age 64+:** note `age64` when age ≥ 64. The Altersentlastungsbetrag (§24a EStG) and the Aktivrente (§3 Nr. 21 EStG) are not modelled.
-- **Solver:** the back-scan below the bisection result adapts to the one-off payments. It steps 1 € at a time while the value stays within the largest possible Soli cliff (5.5 % of the tax on the 13th salary and summer bonus) of the target, then refines to the cent. Replaces the fixed 80 € cent-by-cent scan (8,000 calls per solve).
+- **Solver:** the back-scan below the bisection result adapts to the one-off payments. It steps down 20 ct at a time while the value stays within the largest possible drop of the target (3 € for the euro steps of the annual tax, plus 5.5 % of the tax on the 13th salary and summer bonus for the Soli cliff), then scans the last 2 € cent by cent. Replaces the fixed 80 € cent-by-cent scan (8,000 calls per solve).
 - **JAEG and midijob checks** use the contributory yearly pay, so a taxable benefit card (above 50 €) counts.
 - **PKV subsidy:** still capped on the combined premium; the assumptions say so (the law caps health and care separately).
 - **Share link:** `encodeState` / `decodeState` map `{ settings, anchor, lang }` to URL query parameters (only non-default settings). The page keeps its state in the URL hash and offers "Copy link". `restore` validates whatever comes from the link.
