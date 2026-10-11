@@ -182,3 +182,23 @@ test('restore ignores invalid saved state', () => {
   assert.deepEqual(good.anchor, { field: 'yearNet', cents: 5000000 });
   assert.deepEqual(T.restore(null), { settings: T.DEFAULTS, anchor: null });
 });
+
+test('class V/VI tariff branches above W1, W2 and W3', () => {
+  const cases = [[5, 200000, 29800, 0], [5, 600000, 162425, 0], [5, 2000000, 740850, 40746],
+    [5, 3000000, 1190708, 65488], [6, 2000000, 745458, 41000], [6, 3000000, 1195458, 65750]];
+  for (const [STKL, RE4, lst, soli] of cases) {
+    const r = pap({ STKL, RE4 });
+    assert.deepEqual([r.LSTLZZ, r.SOLZLZZ], [lst, soli], `class ${STKL}, ${RE4}`);
+  }
+});
+test('class III Soli with doubled Freigrenze', () => {
+  const r = pap({ STKL: 3, RE4: 1500000 });
+  assert.deepEqual([r.LSTLZZ, r.SOLZLZZ], [380466, 4914]);
+});
+test('13th salary tax in classes III, V and VI', () => {
+  const sts = (STKL) => pap({ STKL, RE4: 500000, JRE4: 6000000, SONSTB: 500000 }).STS;
+  assert.deepEqual([sts(3), sts(5), sts(6)], [104800, 167600, 167700]);
+  const hi = pap({ STKL: 3, RE4: 1500000, JRE4: 18000000, SONSTB: 1500000 });
+  assert.deepEqual([hi.STS, hi.SOLZS], [630000, 34650]);
+});
+test('Y exposes the tax year', () => assert.equal(T.Y.YEAR, 2026));

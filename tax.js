@@ -2,17 +2,30 @@
    Lohnsteuer is a port of the BMF Programmablaufplan 2026 (Lohnsteuer2026.xml, Stand 2025-10-23),
    limited to employees without Versorgungsbezüge, Altersentlastungsbetrag, Freibeträge or
    Entschädigungen, factor f = 1, ALV = 0, KRV = 0.
-   Money is integer cents. Rates are integers in 1/100000. */
+   Money is integer cents. Rates are integers in 1/100000.
+   Yearly update: see the Y block. */
 (function (root) {
   'use strict';
 
   const RATE = 100000;
-  const GFB = 12348;
-  const SOLZFREI = 20350;
-  const W1STKL5 = 14071, W2STKL5 = 34939, W3STKL5 = 222260;
-  const BBGRVALV = 10140000; // cents per year
-  const BBGKVPV = 6975000;
-  const RVSATZAN = 9300, AVSATZAN = 1300;
+
+  // Tax year 2026. Amounts in cents unless marked as euros; rates in 1/100000.
+  // Yearly update: change this block and the coefficients in tariff(), then the BMF values in tax.test.js.
+  const Y = {
+    YEAR: 2026,
+    GFB: 12348, SOLZFREI: 20350,                     // euros
+    W1STKL5: 14071, W2STKL5: 34939, W3STKL5: 222260, // euros
+    KFB: 9756, KFB_IV: 4878,                         // euros per child allowance
+    ANP: 123000, SAP: 3600, EFA: 426000, VSPHB_MAX: 190000,
+    BBGRVALV: 10140000, BBGKVPV: 6975000,
+    BBG_RV_MONTH: 845000, BBG_KV_MONTH: 581250,
+    JAEG_YEAR: 7740000, MIDIJOB_MAX: 200000, SACHBEZUG_LIMIT: 5000,
+    PKV_SUBSIDY_KV: 50859, PKV_SUBSIDY_PV: 10463, PKV_SUBSIDY_PV_SN: 7556,
+    RV: 9300, ALV: 1300,
+    KV: 7300, KV_TAX: 7000, // actual KV contribution vs. Vorsorgepauschale (no sick-pay share)
+    PV: 1800, PV_SN: 2300, PV_CHILDLESS: 600, PV_PER_CHILD: 250,
+    ZB_AVERAGE: 2.9,        // percent
+  };
 
   // Exact for 0 <= a < 4.5e15 and positive integer b.
   const div = (a, b) => Math.floor(a / b);
@@ -20,9 +33,9 @@
 
   // §32a EStG 2026 (UPTAB26), x in whole euros, returns euros.
   function tariff(x) {
-    if (x < GFB + 1) return 0;
+    if (x < Y.GFB + 1) return 0;
     if (x < 17800) {
-      const y = BigInt(x - GFB) * 100n; // Y in millionths
+      const y = BigInt(x - Y.GFB) * 100n; // Y in millionths
       return Number(((91451n * y + 140000000000n) * y) / 100000000000000n);
     }
     if (x < 69879) {
@@ -41,17 +54,17 @@
 
   // MST5_6, zzx in euros.
   function mst56(zzx) {
-    if (zzx > W2STKL5) {
-      let st = up56(W2STKL5);
-      if (zzx > W3STKL5) {
-        st += div((W3STKL5 - W2STKL5) * 42, 100);
-        return st + div((zzx - W3STKL5) * 45, 100);
+    if (zzx > Y.W2STKL5) {
+      let st = up56(Y.W2STKL5);
+      if (zzx > Y.W3STKL5) {
+        st += div((Y.W3STKL5 - Y.W2STKL5) * 42, 100);
+        return st + div((zzx - Y.W3STKL5) * 45, 100);
       }
-      return st + div((zzx - W2STKL5) * 42, 100);
+      return st + div((zzx - Y.W2STKL5) * 42, 100);
     }
     const vergl = up56(zzx);
-    if (zzx > W1STKL5) {
-      const hoch = up56(W1STKL5) + div((zzx - W1STKL5) * 42, 100);
+    if (zzx > Y.W1STKL5) {
+      const hoch = up56(Y.W1STKL5) + div((zzx - Y.W1STKL5) * 42, 100);
       return hoch < vergl ? hoch : vergl;
     }
     return vergl;
@@ -65,14 +78,14 @@
 
   // UPEVP + MVSPKVPV + MVSPHB: Vorsorgepauschale in cents (whole euros).
   function vorsorgepauschale(zre4vp, p) {
-    const vspr = div(Math.min(zre4vp, BBGRVALV) * RVSATZAN, RATE);
+    const vspr = div(Math.min(zre4vp, Y.BBGRVALV) * Y.RV, RATE);
     let vspkvpv;
     if (p.pkv) vspkvpv = p.stkl === 6 ? 0 : Math.max(0, p.pkpv * 12 - p.pkpvagz * 12);
-    else vspkvpv = div(Math.min(zre4vp, BBGKVPV) * (p.kvsatzan + p.pvsatzan), RATE);
+    else vspkvpv = div(Math.min(zre4vp, Y.BBGKVPV) * (p.kvsatzan + p.pvsatzan), RATE);
     let vsp = ceilEuro(vspr + vspkvpv);
     if (p.stkl !== 6) {
-      const vspalv = div(Math.min(zre4vp, BBGRVALV) * AVSATZAN, RATE);
-      const vsphb = Math.min(vspalv + vspkvpv, 190000);
+      const vspalv = div(Math.min(zre4vp, Y.BBGRVALV) * Y.ALV, RATE);
+      const vsphb = Math.min(vspalv + vspkvpv, Y.VSPHB_MAX);
       vsp = Math.max(vsp, ceilEuro(vspr + vsphb));
     }
     return vsp;
@@ -80,9 +93,9 @@
 
   // MZTABFB + MLSTJAHR for an annual wage in cents.
   function annualTax(zre4, p) {
-    const anp = p.stkl === 6 ? 0 : Math.min(ceilEuro(zre4), 123000);
-    const sap = p.stkl === 6 ? 0 : 3600;
-    const efa = p.stkl === 2 ? 426000 : 0;
+    const anp = p.stkl === 6 ? 0 : Math.min(ceilEuro(zre4), Y.ANP);
+    const sap = p.stkl === 6 ? 0 : Y.SAP;
+    const efa = p.stkl === 2 ? Y.EFA : 0;
     const zve = zre4 - (efa + anp + sap) - vorsorgepauschale(zre4, p);
     return { zve, st: incomeTax(zve, p) };
   }
@@ -90,15 +103,15 @@
   function papParams(i) {
     const stkl = i.STKL;
     const zkf = i.ZKF || 0;
-    const kfbPerZ = stkl <= 3 ? 9756 : stkl === 4 ? 4878 : 0;
-    let pvsatzan = i.PVS ? 2300 : 1800;
-    pvsatzan += i.PVZ ? 600 : -250 * (i.PVA || 0);
+    const kfbPerZ = stkl <= 3 ? Y.KFB : stkl === 4 ? Y.KFB_IV : 0;
+    let pvsatzan = i.PVS ? Y.PV_SN : Y.PV;
+    pvsatzan += i.PVZ ? Y.PV_CHILDLESS : -Y.PV_PER_CHILD * (i.PVA || 0);
     return {
       stkl,
       kztab: stkl === 3 ? 2 : 1,
       zkf,
       kfb: Math.floor(zkf * kfbPerZ) * 100,
-      kvsatzan: 7000 + Math.round((i.KVZ || 0) * 100) * 5,
+      kvsatzan: Y.KV_TAX + Math.round((i.KVZ || 0) * 100) * 5,
       pvsatzan,
       pkv: !!i.PKV,
       pkpv: i.PKPV || 0,
@@ -109,7 +122,7 @@
 
   function pap(input) {
     const p = papParams(input);
-    const solzfrei = SOLZFREI * p.kztab;
+    const solzfrei = Y.SOLZFREI * p.kztab;
 
     // MBERECH, LZZ = 2 (month)
     const reg = annualTax((input.RE4 || 0) * 12, p);
@@ -145,12 +158,6 @@
     };
   }
 
-  const BBG_KV_MONTH = 581250;
-  const BBG_RV_MONTH = 845000;
-  const JAEG_MONTH = 645000;
-  const MIDIJOB_MAX = 200000;
-  // Max employer subsidy for private insurance, 2026: KV 7.3 % + ZB/2 of the cap, PV 1.8 % (Saxony 1.3 %).
-  const PKV_SUBSIDY_KV = 50859, PKV_SUBSIDY_PV = 10463, PKV_SUBSIDY_PV_SN = 7556;
   const BONUS_MONTH = 11; // November
 
   const STATES = [
@@ -163,20 +170,20 @@
 
   const DEFAULTS = {
     taxClass: 1, state: 'BE', church: false, age: 30, children: 0,
-    insurance: 'public', zusatzbeitrag: 2.9, privatePremium: 60000, thirteenth: true,
+    insurance: 'public', zusatzbeitrag: Y.ZB_AVERAGE, privatePremium: 60000, thirteenth: true,
   };
 
   const roundRate = (cents, rate) => div(cents * rate + RATE / 2, RATE);
 
   function careRate(s) {
     const childless = s.children === 0 && s.age >= 23;
-    const discount = Math.max(0, Math.min(s.children, 5) - 1) * 250;
-    return (s.state === 'SN' ? 2300 : 1800) + (childless ? 600 : -discount);
+    const discount = Math.max(0, Math.min(s.children, 5) - 1) * Y.PV_PER_CHILD;
+    return (s.state === 'SN' ? Y.PV_SN : Y.PV) + (childless ? Y.PV_CHILDLESS : -discount);
   }
 
   function pkvSubsidy(s) {
-    const pv = s.state === 'SN' ? PKV_SUBSIDY_PV_SN : PKV_SUBSIDY_PV;
-    return Math.min(div(s.privatePremium, 2), PKV_SUBSIDY_KV + pv);
+    const pv = s.state === 'SN' ? Y.PKV_SUBSIDY_PV_SN : Y.PKV_SUBSIDY_PV;
+    return Math.min(div(s.privatePremium, 2), Y.PKV_SUBSIDY_KV + pv);
   }
 
   function papInput(s, gross) {
@@ -203,12 +210,12 @@
   // Employee contributions on a contributory base; kvBase/rvBase already capped.
   function contributions(s, kvBase, rvBase, privateShare) {
     const pkv = s.insurance === 'private';
-    const kvRate = 7300 + Math.round(s.zusatzbeitrag * 100) * 5;
+    const kvRate = Y.KV + Math.round(s.zusatzbeitrag * 100) * 5;
     return {
       health: pkv ? privateShare : roundRate(kvBase, kvRate),
       care: pkv ? 0 : roundRate(kvBase, careRate(s)),
-      pension: roundRate(rvBase, RVSATZAN),
-      unemployment: roundRate(rvBase, AVSATZAN),
+      pension: roundRate(rvBase, Y.RV),
+      unemployment: roundRate(rvBase, Y.ALV),
     };
   }
 
@@ -229,20 +236,20 @@
     const privateShare = s.insurance === 'private' ? s.privatePremium - pkvSubsidy(s) : 0;
 
     const regular = breakdown(gross, r.LSTLZZ, r.SOLZLZZ, div(r.BK * churchRate, 100),
-      contributions(s, Math.min(gross, BBG_KV_MONTH), Math.min(gross, BBG_RV_MONTH), privateShare));
+      contributions(s, Math.min(gross, Y.BBG_KV_MONTH), Math.min(gross, Y.BBG_RV_MONTH), privateShare));
 
     const b = s.thirteenth ? gross : 0;
     const bonus = breakdown(b, r.STS, r.SOLZS, div(r.BKS * churchRate, 100),
-      contributions(s, bonusBase(gross, b, BBG_KV_MONTH), bonusBase(gross, b, BBG_RV_MONTH), 0));
+      contributions(s, bonusBase(gross, b, Y.BBG_KV_MONTH), bonusBase(gross, b, Y.BBG_RV_MONTH), 0));
 
     const year = {};
     for (const k of Object.keys(regular)) year[k] = regular[k] * 12 + bonus[k];
 
     const notes = [];
-    if (gross > 0 && gross <= MIDIJOB_MAX) {
+    if (gross > 0 && gross <= Y.MIDIJOB_MAX) {
       notes.push('Below 2,000 € a month special mini- and midijob rules apply, so these results are only approximate.');
     }
-    if (s.insurance === 'private' && gross < JAEG_MONTH) {
+    if (s.insurance === 'private' && gross < Y.JAEG_YEAR / 12) {
       notes.push('Private health insurance is normally only possible above 6,450 € a month (77,400 € a year).');
     }
 
@@ -326,7 +333,7 @@
     return { settings, anchor };
   }
 
-  const api = { pap, calculate, solve, read, parseAmount, pkvSubsidy, restore, DEFAULTS, STATES, FIELDS, MAX_GROSS };
+  const api = { Y, pap, calculate, solve, read, parseAmount, pkvSubsidy, restore, DEFAULTS, STATES, FIELDS, MAX_GROSS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SalaryTax = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
