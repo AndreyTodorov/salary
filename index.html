@@ -43,6 +43,7 @@
   .print-only { display: none; }
   .noscript { margin: 1rem; padding: 1rem; border-left: 3px solid var(--tax); }
   [hidden] { display: none !important; }
+  html { scroll-padding-top: 3.5rem; }
   :focus-visible { outline: 2px solid var(--net); outline-offset: 2px; }
 
   /* Masthead */
@@ -87,7 +88,7 @@
       grid-template-columns: 19rem minmax(0, 1fr); column-gap: 2rem;
       grid-template-areas: "settings results" "settings details";
     }
-    .settings { position: sticky; top: 1rem; align-self: start; max-height: calc(100vh - 2rem); overflow-y: auto; padding-right: .25rem; }
+    .settings { position: sticky; top: 1rem; align-self: start; max-height: calc(100vh - 2rem); overflow-y: auto; padding: 4px; margin: -4px; }
     .sticky-bar { display: none; }
   }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); min-width: 0; }
@@ -118,6 +119,9 @@
   }
   @media (prefers-color-scheme: dark) { .pin { color: #0F1614; } }
   .msg { display: block; margin: .35rem 0 0; color: var(--tax); font-size: .8125rem; }
+  /* Hero messages keep their line so the two figures never jump while typing. */
+  .hero .msg { min-height: 1.25rem; }
+  .hero .msg[hidden] { display: block !important; visibility: hidden; }
   .out { display: block; padding: .3rem 0; font-size: 1.5rem; font-weight: 640; font-stretch: 72%; line-height: 1.3; text-align: right; transition: background-color .6s ease; border-radius: 6px; }
   .out.net { color: var(--net); }
 
@@ -167,7 +171,9 @@
   /* Breakdown table */
   .table-scroll { overflow-x: auto; margin: 0 -1.25rem; padding: 0 1.25rem; }
   .breakdown table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .9375rem; }
-  .breakdown th, .breakdown td { padding: .55rem 0 .55rem .75rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .breakdown th, .breakdown td { padding: .55rem 0 .55rem .75rem; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
+  .breakdown thead th { border-top: 0; border-bottom: 1px solid var(--line); }
+  .breakdown tbody tr:first-child > * { border-top: 0; }
   .breakdown th:first-child { text-align: left; padding-left: 0; white-space: normal; min-width: 9rem; }
   .breakdown tr > :first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); padding-right: .6rem; hyphens: auto; }
   .breakdown thead th { font-weight: 500; color: var(--muted); }
@@ -180,7 +186,6 @@
   .breakdown .net th, .breakdown .net td, .breakdown .total th, .breakdown .total td { font-weight: 700; color: var(--net); }
   .breakdown .net th::before, .breakdown .total th::before { background: var(--net); }
   .breakdown .benefit th::before { background: transparent; border: 1px dashed var(--net); }
-  .breakdown .total th, .breakdown .total td, .breakdown tr:last-child th, .breakdown tr:last-child td { border-bottom: 0; }
   .notes { margin: 1rem 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .875rem; }
   .notes li { padding-left: .9rem; border-left: 3px solid var(--bonus); margin-bottom: .5rem; }
   .assumptions { margin-top: 1rem; font-size: .875rem; color: var(--muted); }
@@ -655,15 +660,16 @@
   let lang = (navigator.language || 'en').toLowerCase().startsWith('de') ? 'de' : 'en';
   let settings = { ...T.DEFAULTS };
   let anchor = { field: 'monthlyGross', cents: 500000 };
-  try {
+  {
     // A shared link wins over the remembered state; the language is always the visitor's own.
+    let saved = T.restore(null);
+    try { saved = T.restore(JSON.parse(localStorage.getItem(STORE))); } catch (e) { /* storage unavailable */ }
     const fromLink = location.hash.length > 1 ? T.restore(T.decodeState(location.hash.slice(1))) : null;
-    const saved = T.restore(JSON.parse(localStorage.getItem(STORE)));
     const restored = fromLink && fromLink.anchor ? fromLink : saved;
     settings = restored.settings;
     if (restored.anchor) anchor = restored.anchor;
     if (saved.lang) lang = saved.lang;
-  } catch (e) { /* storage unavailable */ }
+  }
 
   const COMMON = { year: Y.YEAR, zbAvg: String(Y.ZB_AVERAGE).replace('.', ','), cardLimit: fmtEur(Y.SACHBEZUG_LIMIT) };
   function t(key, params) {
@@ -691,6 +697,7 @@
   const cells = [...document.querySelectorAll('input.cell')];
   const boxOf = (el) => el.parentElement;
   const msgOf = (el) => $(`${el.dataset.field}-msg`);
+  const clearInvalid = (el) => { el.removeAttribute('aria-invalid'); boxOf(el).classList.remove('invalid'); };
 
   $('taxClass').innerHTML = [1, 2, 3, 4, 5, 6].map((n) =>
     `<label><input type="radio" name="taxClass" value="${n}"><span>${n}</span></label>`).join('');
@@ -1031,13 +1038,12 @@
       render(el, { announce: true });
     });
     el.addEventListener('blur', () => {
-      el.removeAttribute('aria-invalid');
-      boxOf(el).classList.remove('invalid');
+      clearInvalid(el);
       editStart = null;
       render(null);
     });
     el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); render(null, { quiet: true }); el.select(); }
+      if (e.key === 'Enter') { e.preventDefault(); clearInvalid(el); render(null, { quiet: true }); el.select(); }
       if (e.key === 'Escape' && editStart) { anchor = editStart.anchor; el.blur(); }
     });
   }
