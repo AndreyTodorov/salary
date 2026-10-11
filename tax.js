@@ -254,7 +254,55 @@
     };
   }
 
-  const api = { pap, calculate, DEFAULTS, STATES };
+  const MAX_GROSS = 100000000;
+
+  const READERS = {
+    monthlyGross: (r) => r.regular.gross,
+    monthlyNet: (r) => r.regular.net,
+    averageGross: (r) => r.average.gross,
+    averageNet: (r) => r.average.net,
+    yearGross: (r) => r.year.gross,
+    yearNet: (r) => r.year.net,
+  };
+  const FIELDS = Object.keys(READERS);
+  const read = (result, field) => READERS[field](result);
+
+  // Every field rises with gross, but net dips by a few cents where the annual tax steps
+  // up a euro. Bisect to the crossing, then pick the closest value within ±2 € of gross.
+  function solve(s, field, target) {
+    const f = (g) => read(calculate(s, g), field);
+    if (target <= 0) return 0;
+    if (f(MAX_GROSS) < target) return MAX_GROSS;
+    let lo = 0, hi = MAX_GROSS;
+    while (lo < hi) {
+      const mid = div(lo + hi, 2);
+      if (f(mid) < target) lo = mid + 1; else hi = mid;
+    }
+    let best = lo, bestDiff = Math.abs(f(lo) - target);
+    for (let g = Math.max(0, lo - 200); g <= Math.min(MAX_GROSS, lo + 200); g++) {
+      const d = Math.abs(f(g) - target);
+      if (d < bestDiff) { best = g; bestDiff = d; }
+    }
+    return best;
+  }
+
+  // "5.000,50", "5000.50", "5,000.50", "5 000 €" → cents; null if not a non-negative amount.
+  function parseAmount(text) {
+    let t = String(text).replace(/[\s€ ]/g, '');
+    if (!/^\d[\d.,]*$/.test(t)) return null;
+    const lastComma = t.lastIndexOf(','), lastDot = t.lastIndexOf('.');
+    if (lastComma > lastDot) {
+      t = t.replace(/\./g, '').replace(',', '.');           // German decimal comma
+    } else if (lastDot > lastComma && lastComma >= 0) {
+      t = t.replace(/,/g, '');                             // English thousands comma
+    } else if (lastDot >= 0 && (/\.\d{3}$/.test(t) || t.indexOf('.') !== lastDot)) {
+      t = t.replace(/\./g, '');                            // German thousands dots
+    }
+    if (!/^\d+(\.\d{0,2})?$/.test(t)) return null;
+    return Math.round(parseFloat(t) * 100);
+  }
+
+  const api = { pap, calculate, solve, read, parseAmount, DEFAULTS, STATES, FIELDS, MAX_GROSS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SalaryTax = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

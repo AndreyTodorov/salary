@@ -131,3 +131,38 @@ test('gross 0 is finite', () => {
   assert.equal(r.year.net, 0);
   assert.ok(Object.values(r.regular).every(Number.isFinite));
 });
+
+test('solve monthly net back to gross', () => {
+  const g = T.solve(S({ thirteenth: false }), 'monthlyNet', 313009);
+  assert.ok(Math.abs(g - 500000) <= 20, `got ${g}`);
+  assert.ok(Math.abs(T.calculate(S({ thirteenth: false }), g).regular.net - 313009) <= 1);
+});
+test('solve every field round-trips within a cent', () => {
+  const s = S({ church: true, children: 1, taxClass: 3 });
+  const truth = T.calculate(s, 654321);
+  for (const f of T.FIELDS) {
+    const target = T.read(truth, f);
+    const got = T.read(T.calculate(s, T.solve(s, f, target)), f);
+    assert.ok(Math.abs(got - target) <= 1, `${f}: ${got} vs ${target}`);
+  }
+});
+test('yearly gross with 13th divides by 13', () => {
+  assert.equal(T.solve(S(), 'yearGross', 6500000), 500000);
+});
+test('solver clamps unreachable and negative targets', () => {
+  assert.equal(T.solve(S(), 'monthlyNet', 1e12), T.MAX_GROSS);
+  assert.equal(T.solve(S(), 'monthlyNet', 0), 0);
+});
+test('parseAmount accepts German and English formats', () => {
+  assert.equal(T.parseAmount('5.000,50'), 500050);
+  assert.equal(T.parseAmount('5000.50'), 500050);
+  assert.equal(T.parseAmount('5.000'), 500000);
+  assert.equal(T.parseAmount('65.000'), 6500000);
+  assert.equal(T.parseAmount('1.234.567'), 123456700);
+  assert.equal(T.parseAmount('5 000 €'), 500000);
+  assert.equal(T.parseAmount('5,000.50'), 500050);
+  assert.equal(T.parseAmount('4999,9'), 499990);
+  assert.equal(T.parseAmount(''), null);
+  assert.equal(T.parseAmount('abc'), null);
+  assert.equal(T.parseAmount('-5'), null);
+});
