@@ -210,3 +210,29 @@ test('notes are codes and count the 13th salary', () => {
   assert.deepEqual(codes({ thirteenth: false }, 190000), ['midijob']);
   assert.deepEqual(T.calculate(S({ thirteenth: false }), 190000).notes[0], { code: 'midijob', limit: 200000 });
 });
+test('benefit card up to 50 € is tax-free and not part of net', () => {
+  const base = T.calculate(S({ thirteenth: false }), 500000).regular;
+  const r = T.calculate(S({ thirteenth: false, benefitCard: 5000 }), 500000);
+  assert.equal(r.regular.net, base.net);
+  assert.equal(r.regular.benefit, 5000);
+  assert.equal(r.year.benefit, 60000);
+  assert.deepEqual(r.notes, []);
+});
+test('benefit card above 50 € is taxed in full', () => {
+  const r = T.calculate(S({ thirteenth: false, benefitCard: 6000 }), 500000);
+  const asPay = T.calculate(S({ thirteenth: false }), 506000).regular;
+  assert.equal(r.regular.incomeTax, asPay.incomeTax);
+  assert.equal(r.regular.pension, asPay.pension);
+  assert.equal(r.regular.net, asPay.net - 6000);
+  assert.deepEqual(r.notes.map((n) => n.code), ['benefitTaxable']);
+});
+test('13th salary is one monthly gross, without the benefit card', () => {
+  const r = T.calculate(S({ benefitCard: 6000 }), 500000);
+  assert.equal(r.bonus.gross, 500000);
+  assert.equal(r.bonus.benefit, 0);
+});
+test('benefit card above 50 € counts toward the §23a room', () => {
+  // 8,400 + 60 = 8,460 > RV cap 8,450: no room left for the 13th salary in RV/ALV
+  const b = T.calculate(S({ benefitCard: 6000 }), 840000).bonus;
+  assert.equal(b.pension, 0);
+});

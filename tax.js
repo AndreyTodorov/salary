@@ -170,7 +170,7 @@
 
   const DEFAULTS = {
     taxClass: 1, state: 'BE', church: false, age: 30, children: 0,
-    insurance: 'public', zusatzbeitrag: Y.ZB_AVERAGE, privatePremium: 60000, thirteenth: true,
+    insurance: 'public', zusatzbeitrag: Y.ZB_AVERAGE, privatePremium: 60000, thirteenth: true, benefitCard: 0,
   };
 
   const roundRate = (cents, rate) => div(cents * rate + RATE / 2, RATE);
@@ -186,13 +186,13 @@
     return Math.min(div(s.privatePremium, 2), Y.PKV_SUBSIDY_KV + pv);
   }
 
-  function papInput(s, gross) {
+  function papInput(s, pay, bonus) {
     const childless = s.children === 0 && s.age >= 23;
     const pkv = s.insurance === 'private';
     const perChild = s.taxClass <= 2 ? 0.5 : s.taxClass <= 4 ? 1 : 0;
     return {
       STKL: s.taxClass,
-      RE4: gross,
+      RE4: pay,
       ZKF: s.children * perChild,
       KVZ: s.zusatzbeitrag,
       PVZ: childless ? 1 : 0,
@@ -202,8 +202,8 @@
       PKPV: pkv ? s.privatePremium : 0,
       PKPVAGZ: pkv ? pkvSubsidy(s) : 0,
       R: s.church ? 1 : 0,
-      JRE4: gross * 12,
-      SONSTB: s.thirteenth ? gross : 0,
+      JRE4: pay * 12,
+      SONSTB: bonus,
     };
   }
 
@@ -219,9 +219,9 @@
     };
   }
 
-  function breakdown(gross, incomeTax, soli, church, sv) {
+  function breakdown(gross, incomeTax, soli, church, sv, benefit) {
     const net = gross - incomeTax - soli - church - sv.health - sv.care - sv.pension - sv.unemployment;
-    return { gross, incomeTax, soli, church, ...sv, net };
+    return { gross, incomeTax, soli, church, ...sv, benefit, net };
   }
 
   // §23a SGB IV: one-off payment fills the room under the pro-rata annual cap up to its month.
@@ -231,16 +231,18 @@
   }
 
   function calculate(s, gross) {
-    const r = pap(papInput(s, gross));
+    const card = s.benefitCard || 0;
+    const pay = gross + (card > Y.SACHBEZUG_LIMIT ? card : 0); // taxable and contributory monthly pay
+    const b = s.thirteenth ? gross : 0;
+    const r = pap(papInput(s, pay, b));
     const churchRate = s.state === 'BW' || s.state === 'BY' ? 8 : 9;
     const privateShare = s.insurance === 'private' ? s.privatePremium - pkvSubsidy(s) : 0;
 
     const regular = breakdown(gross, r.LSTLZZ, r.SOLZLZZ, div(r.BK * churchRate, 100),
-      contributions(s, Math.min(gross, Y.BBG_KV_MONTH), Math.min(gross, Y.BBG_RV_MONTH), privateShare));
+      contributions(s, Math.min(pay, Y.BBG_KV_MONTH), Math.min(pay, Y.BBG_RV_MONTH), privateShare), card);
 
-    const b = s.thirteenth ? gross : 0;
     const bonus = breakdown(b, r.STS, r.SOLZS, div(r.BKS * churchRate, 100),
-      contributions(s, bonusBase(gross, b, Y.BBG_KV_MONTH), bonusBase(gross, b, Y.BBG_RV_MONTH), 0));
+      contributions(s, bonusBase(pay, b, Y.BBG_KV_MONTH), bonusBase(pay, b, Y.BBG_RV_MONTH), 0), 0);
 
     const year = {};
     for (const k of Object.keys(regular)) year[k] = regular[k] * 12 + bonus[k];
@@ -249,6 +251,7 @@
     const notes = [];
     if (gross > 0 && yearGross <= Y.MIDIJOB_MAX * 12) notes.push({ code: 'midijob', limit: Y.MIDIJOB_MAX });
     if (s.insurance === 'private' && yearGross < Y.JAEG_YEAR) notes.push({ code: 'jaeg', limit: Y.JAEG_YEAR });
+    if (card > Y.SACHBEZUG_LIMIT) notes.push({ code: 'benefitTaxable', limit: Y.SACHBEZUG_LIMIT });
 
     return {
       regular,
