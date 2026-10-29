@@ -1,7 +1,8 @@
 /* Bakes the interface text and the search-engine metadata into the static pages:
    index.html (English, also the default page) and de/index.html (German), the explanation pages
    how-it-works/ and de/so-wird-gerechnet/ (text in _guide/), the privacy policy privacy/ and
-   de/datenschutz/ (text in _privacy/), and sitemap.xml.
+   de/datenschutz/ (text in _privacy/), the Impressum impressum/ and de/impressum/ (text in
+   _impressum/), and sitemap.xml.
    index.html is the source: edit it, then run `node build.js`. `node build.js --check` fails when
    any generated file is out of date.
    Every page shows the date its content last changed: the page stores a hash of its content without
@@ -32,12 +33,14 @@ const PATHS = {
   calc: { en: '/', de: '/de/' },
   guide: { en: t('en', 'guidePath'), de: t('de', 'guidePath') },
   privacy: { en: t('en', 'privacyPath'), de: t('de', 'privacyPath') },
+  impressum: { en: t('en', 'impressumPath'), de: t('de', 'impressumPath') },
 };
 
 // Text pages: where their content lives and which interface strings name them.
 const DOCS = {
   guide: { dir: '_guide', docTitle: 'guideDocTitle', title: 'guideTitle', lede: 'guideLede', description: 'guideDescription', type: 'Article' },
   privacy: { dir: '_privacy', docTitle: 'privacyDocTitle', title: 'privacyTitle', lede: 'privacyLede', description: 'privacyDescription', type: 'WebPage' },
+  impressum: { dir: '_impressum', docTitle: 'impressumDocTitle', title: 'impressumTitle', lede: 'impressumLede', description: 'impressumDescription', type: 'WebPage' },
 };
 const url = (kind, lang) => ORIGIN + PATHS[kind][lang];
 
@@ -172,7 +175,7 @@ ${content}
   </main>
   <footer>
     <p>${esc(t(lang, 'footer'))}</p>
-    <p><a href="${PATHS.calc[lang]}">${esc(t(lang, 'title'))}</a> · <a href="${PATHS.guide[lang]}">${esc(t(lang, 'guideLink'))}</a> · <a href="${PATHS.privacy[lang]}">${esc(t(lang, 'privacyLink'))}</a></p>
+    <p><a href="${PATHS.calc[lang]}">${esc(t(lang, 'title'))}</a> · <a href="${PATHS.guide[lang]}">${esc(t(lang, 'guideLink'))}</a> · <a href="${PATHS.privacy[lang]}">${esc(t(lang, 'privacyLink'))}</a> · <a href="${PATHS.impressum[lang]}">${esc(t(lang, 'impressumLink'))}</a></p>
     ${updatedLine(lang)}
   </footer>
 </div>
